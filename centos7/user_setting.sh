@@ -11,10 +11,10 @@ add_group() {
   read -p "Enter new group name: " groupname
   if [ -n "$groupname" ]; then
     if ! getent group "$groupname" >/dev/null; then
-        groupadd $groupname
-        cat /etc/group | grep $groupname
+      groupadd $groupname
+      cat /etc/group | grep $groupname
     else
-        echo "Group $groupname has been added."
+      echo "Group $groupname has been added."
     fi
   else
     echo "Wrong input!"
@@ -26,12 +26,12 @@ add_group() {
 delete_group() {
   read -p "Enter group name: " groupname
   if [ -n "$groupname" ]; then
-  
+
     if ! getent group "$groupname" >/dev/null; then
-        echo "Group $groupname is not exist."
+      echo "Group $groupname is not exist."
     else
-        groupdel "$groupname"
-        echo "Group $groupname deleted."
+      groupdel "$groupname"
+      echo "Group $groupname deleted."
     fi
   else
     echo "Wrong input!"
@@ -39,23 +39,21 @@ delete_group() {
   view_group
 }
 
-
 # View user account info
 view_user() {
   echo "Current users:"
-  for user in $(ls /home)
-  do
+  for user in $(ls /home); do
     groups=$(groups $user | cut -d' ' -f2-)
     echo "$user $groups"
   done
-} 
+}
 
 # Add a user and assign to group
-add_user(){
+add_user() {
   read -p "Enter username: " username
   read -p "Enter password: " password
   read -p "Enter group (or leave blank for default): " group
-  
+
   if [ -z "$group" ]; then
     $group="unclassified"
   fi
@@ -65,7 +63,7 @@ add_user(){
   else
     useradd -g "$group" -m "$username"
     echo "$password" | passwd --stdin "$username"
-    echo "AllowUsers $username" >> /etc/ssh/sshd_config
+    echo "AllowUsers $username" >>/etc/ssh/sshd_config
     systemctl restart sshd.service
     systemctl enable sshd.service
   fi
@@ -76,7 +74,7 @@ add_user(){
 delete_user() {
   read -p "Enter username: " username
 
-  if id "$username" &>/dev/null; then  
+  if id "$username" &>/dev/null; then
     read -p "Confirm delete user $username? (y/n) " confirm
     if [ "$confirm" = "y" ]; then
       chown -R root:root /home/"$username"
@@ -102,7 +100,7 @@ modify_user_password() {
   echo "Password changed for $username."
 }
 
-# Modify user's group  
+# Modify user's group
 modify_user_group() {
   read -p "Enter username: " username
   read -p "Enter new group: " newgroup
@@ -122,13 +120,13 @@ modify_user_permissions() {
     read -p "$username currently has no sudo privilege. Add privilege? (y/n) " add
     if [ "$add" = "y" ]; then
       read -p "Enter sudo permission for $username ("ALL" is easy choice): " sudo_permission
-      echo "$username ALL=(ALL) $sudo_permission" >> /etc/sudoers
+      echo "$username ALL=(ALL) $sudo_permission" >>/etc/sudoers
       echo "Added sudo privilege for $username"
     elif [ "$add" = "n" ]; then
       echo "Sudo privilege unchanged for $username"
     fi
   else
-    read -p "$username currently has sudo privilege. Revoke privilege? (y/n) " revoke  
+    read -p "$username currently has sudo privilege. Revoke privilege? (y/n) " revoke
     if [ "$revoke" = "y" ]; then
       echo "Sudo privilege unchanged for $username"
     elif [ "$revoke" = "n" ]; then
@@ -138,36 +136,38 @@ modify_user_permissions() {
   fi
 }
 
-group_setting(){
-  echo -e "\033[32m 1. View group \033[0m"
-  echo -e "\033[32m 2. Add group \033[0m"
-  echo -e "\033[32m 3. Delete group \033[0m"
-  echo -e "\033[32m 0. Quit \033[0m"
-  echo -e "\033[32m ******** \033[0m"
-  read -p "Enter selection: " selection
+group_setting() {
+  while :; do
+    echo -e "\033[32m 1. View group \033[0m"
+    echo -e "\033[32m 2. Add group \033[0m"
+    echo -e "\033[32m 3. Delete group \033[0m"
+    echo -e "\033[32m 0. Back to main list \033[0m"
+    echo -e "\033[32m ******** \033[0m"
+    read -p "Enter selection: " selection
 
-  case $selection in
+    case $selection in
     1) view_group ;;
     2) add_group ;;
     3) delete_group ;;
     0) break ;;
-    *) echo "Invalid selection";;
-  esac
+    *) echo "Invalid selection" ;;
+    esac
+  done
 }
 
-user_setting(){
-  echo -e "\033[32m 1. View user \033[0m"
-  echo -e "\033[32m 2. Add user \033[0m"
-  echo -e "\033[32m 3. Delete user \033[0m"
-  echo -e "\033[32m 4. Modify user password \033[0m"
-  echo -e "\033[32m 5. Modify user group \033[0m"
-  echo -e "\033[32m 6. Modify user permissions \033[0m"
-  echo -e "\033[32m 0. Quit \033[0m"
-  echo -e "\033[32m ******** \033[0m"
-  read -p "Enter selection: " selection
+user_setting() {
+  while :; do
+    echo -e "\033[32m 1. View user \033[0m"
+    echo -e "\033[32m 2. Add user \033[0m"
+    echo -e "\033[32m 3. Delete user \033[0m"
+    echo -e "\033[32m 4. Modify user password \033[0m"
+    echo -e "\033[32m 5. Modify user group \033[0m"
+    echo -e "\033[32m 6. Modify user permissions \033[0m"
+    echo -e "\033[32m 0. Back to main list \033[0m"
+    echo -e "\033[32m ******** \033[0m"
+    read -p "Enter selection: " selection
 
-
-  case $selection in
+    case $selection in
     1) view_user ;;
     2) add_user ;;
     3) delete_user ;;
@@ -175,20 +175,17 @@ user_setting(){
     5) modify_user_group ;;
     6) modify_user_permissions ;;
     0) break ;;
-    *) echo "Invalid selection";;
-  esac
+    *) echo "Invalid selection" ;;
+    esac
+  done
 }
-
-
-
 
 # Main menu
 echo "****************************************************************"
 echo "Group should be make sure before setting a new user"
 echo "****************************************************************"
 
-while :
-do
+while :; do
   echo -e "\033[32m ********"
   echo -e "\033[32m 1. Group setting"
   echo -e "\033[32m 2. User setting"
@@ -197,17 +194,9 @@ do
   read -p "Enter selection: " selection
 
   case $selection in
-    1) group_setting ;;
-    2) user_setting ;;
-    0) break ;;
-    *) echo "Invalid selection";;
+  1) group_setting ;;
+  2) user_setting ;;
+  0) break ;;
+  *) echo "Invalid selection" ;;
   esac
-
-#   echo "********"
-#   read -p "Confirm wheater to continue the setting? (y/n) " confirm
-#   if [ "$confirm" = "n" ]; then
-#     break
-#   fi
 done
-
-echo "Script finished."
