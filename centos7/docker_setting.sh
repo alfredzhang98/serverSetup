@@ -7,7 +7,7 @@ function validate_input() {
     fi
 }
 
-function run_container() {
+function run_container_basic() {
     local container_name image_name image_tag port_mapping
     read -p "Enter container name: " container_name
     validate_input $container_name
@@ -36,6 +36,11 @@ function run_container() {
         --device "$device" \
         -v "$host_dir:/home/$container_name" --name "$container_name" \
         -u root "$repository":"$tag" /bin/bash
+}
+
+function run_container_free() {
+    read -p "Enter container setting: " container_setting
+    docker run "$container_setting"
 }
 
 function enter_container() {
@@ -125,15 +130,16 @@ while true; do
     echo -e "\033[32m Please select an operation to perform: \033[0m"
     echo -e "\033[32m 1. View dockers container ID and details \033[0m"
     echo -e "\033[32m 2. Run a container \033[0m"
-    echo -e "\033[32m 3. Enter a running container \033[0m"
-    echo -e "\033[32m 4. Start a container \033[0m"
-    echo -e "\033[32m 5. Stop a container \033[0m"
-    echo -e "\033[32m 6. Remove a container \033[0m"
-    echo -e "\033[32m 7. View dockers image \033[0m"
-    echo -e "\033[32m 8. Pull dockers image \033[0m"
-    echo -e "\033[32m 9. Import image from local file \033[0m"
-    echo -e "\033[32m 10. Export image to local file \033[0m"
-    echo -e "\033[32m 11. Remove an image \033[0m"
+    echo -e "\033[32m 3. Run a container freely \033[0m"
+    echo -e "\033[32m 4. Enter a running container \033[0m"
+    echo -e "\033[32m 5. Start a container \033[0m"
+    echo -e "\033[32m 6. Stop a container \033[0m"
+    echo -e "\033[32m 7. Remove a container \033[0m"
+    echo -e "\033[32m 8. View dockers image \033[0m"
+    echo -e "\033[32m 9. Pull dockers image \033[0m"
+    echo -e "\033[32m 10. Import image from local file \033[0m"
+    echo -e "\033[32m 11. Export image to local file \033[0m"
+    echo -e "\033[32m 12. Remove an image \033[0m"
     echo -e "\033[32m 0. Exit \033[0m"
     echo -e "\033[32m ********** \033[0m"
 
@@ -143,18 +149,19 @@ while true; do
         docker ps -a
         # docker system df
         ;;
-    2) run_container ;;
-    3) enter_container ;;
-    4) start_container ;;
-    5) stop_container ;;
-    6) remove_container ;;
-    7)
+    2) run_container_basic ;;
+    3) run_container_free ;;
+    4) enter_container ;;
+    5) start_container ;;
+    6) stop_container ;;
+    7) remove_container ;;
+    8)
         docker images
         ;;
-    8) pull_image ;;
-    9) import_image ;;
-    10) export_image ;;
-    11) remove_image ;;
+    9) pull_image ;;
+    10) import_image ;;
+    11) export_image ;;
+    12) remove_image ;;
     0) exit 0 ;;
     *) echo "Invalid selection" ;;
     esac
