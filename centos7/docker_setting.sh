@@ -40,7 +40,7 @@ function run_container_basic() {
 
 function run_container_free() {
     read -p "Enter container setting: " container_setting
-    docker run "$container_setting"
+    docker run $container_setting
 }
 
 function enter_container() {
