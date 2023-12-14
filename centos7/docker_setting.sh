@@ -279,7 +279,7 @@ function remove_image() {
     docker rmi "$image_name"
 }
 
-configure_docker_for_firewalld() {
+function configure_docker_for_firewalld() {
     echo "Configuring Docker to work with firewalld..."
     mkdir -p /etc/docker
     echo '{ "iptables": false }' > /etc/docker/daemon.json
@@ -287,81 +287,84 @@ configure_docker_for_firewalld() {
     echo "Docker configured to work with firewalld."
 }
 
-reset_docker_configuration() {
+function reset_docker_configuration() {
     echo "Resetting Docker configuration..."
     rm -f /etc/docker/daemon.json
     systemctl restart docker
     echo "Docker configuration reset."
 }
 
+main_menu() {
+    while true; do
+        echo -e "\033[32m ********** \033[0m"
+        echo -e "\033[32m Please select an operation to perform: \033[0m"
+        echo -e "\033[32m 1. View dockers container ID and details \033[0m"
+        echo -e "\033[32m 2. Run a container \033[0m"
+        echo -e "\033[32m 3. Run a container freely \033[0m"
+        echo -e "\033[32m 4. Enter a running container \033[0m"
+        echo -e "\033[32m 5. Start a container \033[0m"
+        echo -e "\033[32m 6. Stop a container \033[0m"
+        echo -e "\033[32m 7. Remove a container \033[0m"
+        echo -e "\033[32m 8. Setting a running container \033[0m"
+        echo -e "\033[32m ********** \033[0m"
+        echo -e "\033[32m 10. View dockers image \033[0m"
+        echo -e "\033[32m 11. Pull dockers image \033[0m"
+        echo -e "\033[32m 12. Import image from local file \033[0m"
+        echo -e "\033[32m 13. Export image to local file \033[0m"
+        echo -e "\033[32m 14. Remove an image \033[0m"
+        echo -e "\033[32m ********** \033[0m"
+        echo -e "\033[32m 20. Status docker \033[0m"
+        echo -e "\033[32m 21. Start docker \033[0m"
+        echo -e "\033[32m 22. StaStoptus docker \033[0m"
+        echo -e "\033[32m 23. Restart docker \033[0m"
+        echo -e "\033[32m 24. Set Docker firewall as firewalld\033[0m"
+        echo -e "\033[32m 25. Set Docker firewall as default\033[0m"
+        echo -e "\033[32m ********** \033[0m"
+        echo -e "\033[32m 0. Exit \033[0m"
+        echo -e "\033[32m ********** \033[0m"
 
-while true; do
-    echo -e "\033[32m ********** \033[0m"
-    echo -e "\033[32m Please select an operation to perform: \033[0m"
-    echo -e "\033[32m 1. View dockers container ID and details \033[0m"
-    echo -e "\033[32m 2. Run a container \033[0m"
-    echo -e "\033[32m 3. Run a container freely \033[0m"
-    echo -e "\033[32m 4. Enter a running container \033[0m"
-    echo -e "\033[32m 5. Start a container \033[0m"
-    echo -e "\033[32m 6. Stop a container \033[0m"
-    echo -e "\033[32m 7. Remove a container \033[0m"
-    echo -e "\033[32m 8. Setting a running container \033[0m"
-    echo -e "\033[32m ********** \033[0m"
-    echo -e "\033[32m 10. View dockers image \033[0m"
-    echo -e "\033[32m 11. Pull dockers image \033[0m"
-    echo -e "\033[32m 12. Import image from local file \033[0m"
-    echo -e "\033[32m 13. Export image to local file \033[0m"
-    echo -e "\033[32m 14. Remove an image \033[0m"
-    echo -e "\033[32m ********** \033[0m"
-    echo -e "\033[32m 20. Status docker \033[0m"
-    echo -e "\033[32m 21. Start docker \033[0m"
-    echo -e "\033[32m 22. StaStoptus docker \033[0m"
-    echo -e "\033[32m 23. Restart docker \033[0m"
-    echo -e "\033[32m 24. Set Docker firewall as firewalld\033[0m"
-    echo -e "\033[32m 25. Set Docker firewall as default\033[0m"
-    echo -e "\033[32m ********** \033[0m"
-    echo -e "\033[32m 0. Exit \033[0m"
-    echo -e "\033[32m ********** \033[0m"
+        read -p "Enter the number for the operation: " choice
+        case $choice in
+        1)
+            docker ps -a
+            # docker system df
+            ;;
+        2) run_container_basic ;;
+        3) run_container_free ;;
+        4) enter_container ;;
+        5) start_container ;;
+        6) stop_container ;;
+        7) remove_container ;;
+        8) setting_running_container ;;
+        10)
+            docker images
+            ;;
+        11) pull_image ;;
+        12) import_image ;;
+        13) export_image ;;
+        14) remove_image ;;
+        20) 
+            echo "Docker service status"
+            sudo systemctl status docker
+            ;;
+        21) 
+            echo "Docker service starting..."
+            sudo systemctl start docker
+            ;;
+        22) 
+            echo "Docker service stopping..."
+            sudo systemctl stop docker
+            ;;
+        23) 
+            echo "Restarting Docker service..."
+            sudo systemctl restart docker 
+            ;;
+        24)configure_docker_for_firewalld ;;
+        25)reset_docker_configuration ;;
+        0) exit 0 ;;
+        *) echo "Invalid selection" ;;
+        esac
+    done
+}
 
-    read -p "Enter the number for the operation: " choice
-    case $choice in
-    1)
-        docker ps -a
-        # docker system df
-        ;;
-    2) run_container_basic ;;
-    3) run_container_free ;;
-    4) enter_container ;;
-    5) start_container ;;
-    6) stop_container ;;
-    7) remove_container ;;
-    8) setting_running_container ;;
-    10)
-        docker images
-        ;;
-    11) pull_image ;;
-    12) import_image ;;
-    13) export_image ;;
-    14) remove_image ;;
-    20) 
-        echo "Docker service status"
-        sudo systemctl status docker
-        ;;
-    21) 
-        echo "Docker service starting..."
-        sudo systemctl start docker
-        ;;
-    22) 
-        echo "Docker service stopping..."
-        sudo systemctl stop docker
-        ;;
-    23) 
-        echo "Restarting Docker service..."
-        sudo systemctl restart docker 
-        ;;
-    24)configure_docker_for_firewalld ;;
-    25)reset_docker_configuration ;;
-    0) exit 0 ;;
-    *) echo "Invalid selection" ;;
-    esac
-done
+main_menu
