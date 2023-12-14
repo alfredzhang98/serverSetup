@@ -9,18 +9,21 @@ if [ -z "$remote_url" ]; then
     exit 1
 fi
 
-# 可以进一步检查 remote_url 是否为有效的 Git 仓库地址
-# 这里仅简单检查 URL 格式
-if ! [[ "$remote_url" =~ ^https?:// || "$remote_url" =~ ^git@ ]]; then
-    echo "Error: The remote URL '$remote_url' is not a valid URL."
-    exit 1
-fi
-
 # 移除名为 origin 的远程仓库
 git remote rm origin
 
 # 添加新的名为 origin 的远程仓库，并设置为第一步获取的地址
 git remote add origin "$remote_url"
 
-# 推送本地分支 master 到远程仓库 origin，并设置为跟踪分支
-git push -u origin master
+# 检查是否存在 master 或 main 分支
+if git show-ref --verify --quiet refs/heads/master; then
+    branch_to_push="master"
+elif git show-ref --verify --quiet refs/heads/main; then
+    branch_to_push="main"
+else
+    echo "Error: Neither 'master' nor 'main' branch found."
+    exit 1
+fi
+
+# 推送选定的分支到远程仓库 origin，并设置为跟踪分支
+git push -u origin $branch_to_push
