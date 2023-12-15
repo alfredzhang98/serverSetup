@@ -50,23 +50,68 @@ function view_user() {
 # Function to add a user and assign to a group
 function add_user() {
   read -p "Enter username: " username
-  read -p "Enter password: " -s password
+  read -p "Enter password: " -s password1
   echo
+  read -p "Confirm password: " -s password2
+  echo
+
+  # Compare passwords
+  attempts=1
+  while [ "$password1" != "$password2" ]; do
+    if [ $attempts -eq 3 ]; then
+      echo "Passwords do not match. Exiting..."
+      return
+    fi
+
+    echo "Passwords do not match. Please try again."
+    read -p "Enter password: " -s password1
+    echo
+    read -p "Confirm password: " -s password2
+    echo
+
+    attempts=$((attempts + 1))
+  done
+
   read -p "Enter group (or leave blank for default): " group
 
   [ -z "$group" ] && group="unclassified"
 
   if ! getent group "$group" >/dev/null; then
-    echo "You should add a right group first."
+    echo "Group $group does not exist. Please add the correct group first."
+    return
+  fi
+
+  if id -u "$username" >/dev/null 2>&1; then
+    echo "User $username already exists. Please choose a different username."
+    return
+  fi
+
+  # Check if mailbox file exists
+  if [ -f "/var/mail/$username" ]; then
+    echo "Mailbox file for user $username already exists. Skipping mailbox creation."
   else
     useradd -g "$group" -m "$username"
-    echo -e "$password\n$password" | passwd "$username"
+    echo "$username:$password1" | chpasswd
+  fi
+
+  if ! grep -q "^AllowUsers $username" /etc/ssh/sshd_config; then
     echo "AllowUsers $username" >> /etc/ssh/sshd_config
     systemctl restart sshd.service
     systemctl enable sshd.service
   fi
-  view_user
+
+  if [ ! -d "/home/$username/.ssh" ]; then
+    mkdir -p "/home/$username/.ssh"
+  fi
+
+  cat /root/.ssh/authorized_keys > /home/$username/.ssh/authorized_keys
+  chown "$username:$group" "/home/$username/.ssh"
+  chmod 700 "/home/$username/.ssh"
+  chown "$username:$group" "/home/$username/.ssh/authorized_keys"
+  chmod 600 "/home/$username/.ssh/authorized_keys"
 }
+
+
 
 # Function to delete a user
 function delete_user() {
@@ -75,8 +120,23 @@ function delete_user() {
   if id "$username" &>/dev/null; then
     read -p "Confirm delete user $username? (y/n) " confirm
     if [ "$confirm" = "y" ]; then
-      userdel "$username"
-      echo "User $username deleted."
+      # Delete mailbox file
+      if [ -f "/var/mail/$username" ]; then
+        rm "/var/mail/$username"
+        echo "Mailbox file for user $username deleted."
+      fi
+
+      # Delete user's home directory
+      read -p "Delete home directory /home/$username? (y/n) " delete_home
+      if [ "$delete_home" = "y" ]; then
+        userdel -r "$username"
+        echo "User $username and home directory deleted."
+      else
+        userdel "$username"
+        echo "User $username deleted."
+      fi
+
+      # Remove user from SSH configuration
       sed -i "/$username/d" /etc/ssh/sshd_config
       systemctl restart sshd.service
       systemctl enable sshd.service
@@ -86,7 +146,6 @@ function delete_user() {
   else
     echo "User $username does not exist."
   fi
-  view_user
 }
 
 # Function to change user password

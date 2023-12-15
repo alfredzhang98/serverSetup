@@ -28,5 +28,8 @@ else
     exit 1
 fi
 
+sleep 1
+
 # 推送选定的分支到远程仓库 origin，并设置为跟踪分支
+echo "Waiting the pushing..."
 git push -u origin $branch_to_push
