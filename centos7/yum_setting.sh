@@ -10,6 +10,7 @@ main_menu() {
         echo -e "\033[32m 3. install Baota safety monitoring\033[0m"
         echo -e "\033[32m 4. install Baota WAF\033[0m"
         echo -e "\033[32m 5. install Baota log analysis\033[0m"
+        echo -e "\033[32m 6. install Baota security system\033[0m"
         echo -e "\033[32m 0. Exit \033[0m"
         echo -e "\033[32m ******** \033[0m"
 
@@ -17,14 +18,38 @@ main_menu() {
 
         case $choice in
         1)
-            # 更新
+            # 系统更新
+            echo "Updating system packages..."
             yum -y update
+
+            # 自动更新工具安装与配置
+            echo "Installing and configuring yum-cron for automatic updates..."
             yum -y install yum-cron
             sed -i 's/apply_updates = no/apply_updates = yes/' /etc/yum/yum-cron.conf
-            systemctl start crond
             systemctl start yum-cron
-            systemctl enable crond
             systemctl enable yum-cron
+
+            # 防火墙配置
+            echo "Configuring Firewall..."
+            if systemctl is-active --quiet iptables; then
+                systemctl stop iptables
+                systemctl disable iptables
+            fi
+            yum -y install firewalld
+            systemctl start firewalld
+            systemctl enable firewalld
+
+            # 设置基本防火墙规则
+            firewall-cmd --zone=public --add-service=ssh --permanent
+            firewall-cmd --reload
+
+            # 安装并配置 Fail2Ban
+            echo "Installing Fail2Ban..."
+            yum -y install fail2ban
+            systemctl start fail2ban
+            systemctl enable fail2ban
+
+            echo "Initial setup completed."
             ;;
         2)
             yum install -y wget && wget -O install.sh https://download.bt.cn/install/install_6.0.sh && sh install.sh ed8484bec
@@ -39,6 +64,10 @@ main_menu() {
             ;;
         5)
             curl -sSO http://download.bt.cn/btlogs/btlogs.sh && bash btlogs.sh install
+            ;;
+        6) 
+            URL=https://download.bt.cn/bthids/scripts/install_hids.sh && if [ -f /usr/bin/curl ];then curl -sSO "$URL" ;else wget -O install_hids.sh "$URL"; fi
+            bash install_hids.sh
             ;;
         0)
             echo "Exiting the script"
