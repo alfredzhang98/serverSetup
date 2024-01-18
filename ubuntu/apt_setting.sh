@@ -28,8 +28,16 @@ main_menu() {
         2)
             # SSH 配置
             echo "Configuring SSH..."
-            sudo sed -i 's/^.PermitRootLogin .*/PermitRootLogin prohibit-password/g' /etc/ssh/sshd_config
-            sudo sed -i 's/^.PasswordAuthentication .*/PasswordAuthentication no/g' /etc/ssh/sshd_config
+            sudo sed -i 's/^.PermitRootLogin .*/PermitRootLogin yes/g' /etc/ssh/sshd_config
+            sudo sed -i 's/^.PasswordAuthentication .*/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+            if ! grep -q "^AllowUsers root" /etc/ssh/sshd_config; then
+                echo "AllowUsers root" >> /etc/ssh/sshd_config
+            fi
+            if ! grep -q "^AllowUsers ubuntu" /etc/ssh/sshd_config; then
+                echo "AllowUsers ubuntu" >> /etc/ssh/sshd_config
+            fi
+            sudo systemctl restart sshd.service
+            sudo systemctl enable sshd.service
 
             # 安装并配置 Fail2Ban
             echo "Installing Fail2Ban..."
@@ -66,7 +74,8 @@ main_menu() {
             sudo firewall-cmd --reload
 
             # 重启 SSH 服务以应用配置更改
-            sudo service ssh restart
+            sudo systemctl restart sshd.service
+            sudo systemctl enable sshd.service
 
             echo "Initial setup completed."
             ;;

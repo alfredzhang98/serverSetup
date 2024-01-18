@@ -25,6 +25,16 @@ main_menu() {
             echo "Success updating system packages"
             ;;
         2)
+            # SSH 配置
+            echo "Configuring SSH..."
+            sudo sed -i 's/^.PermitRootLogin .*/PermitRootLogin yes/g' /etc/ssh/sshd_config
+            sudo sed -i 's/^.PasswordAuthentication .*/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+            if ! grep -q "^AllowUsers root" /etc/ssh/sshd_config; then
+                echo "AllowUsers root" >> /etc/ssh/sshd_config
+            fi
+            sudo systemctl restart sshd.service
+            sudo systemctl enable sshd.service
+
             # 自动更新工具安装与配置
             echo "Installing and configuring yum-cron for automatic updates..."
             yum -y install yum-cron
