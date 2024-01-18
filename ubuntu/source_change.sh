@@ -39,6 +39,7 @@ function switch_pip_mirror() {
 
 # 主菜单
 function main_menu() {
+    sudo su
     echo "1. Switch to Domestic Mirrors"
     echo "2. Switch to Default Mirrors"
     read -p "Enter your choice: " choice
@@ -55,6 +56,7 @@ function main_menu() {
         *) echo "Invalid selection"
            ;;
     esac
+    read -p "Press Enter to continue..."
 }
 
 main_menu

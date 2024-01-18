@@ -1,17 +1,18 @@
 #!/bin/bash
 
 main_menu() {
+    sudo su
     while true; do
-
         echo -e "\033[32m ******** \033[0m"
         echo -e "\033[32m Please select an operation to perform: \033[0m"
         echo -e "\033[32m 1. update apt (Face the kdump-tools and using outdated libraries problems, please run it twice if not see suuccess)\033[0m"
         echo -e "\033[32m 2. initial apt packages install(once is ok)\033[0m"
-        echo -e "\033[32m 3. install Baota panel\033[0m"
-        echo -e "\033[32m 4. install Baota safety monitoring\033[0m"
-        echo -e "\033[32m 5. install Baota WAF\033[0m"
-        echo -e "\033[32m 6. install Baota log analysis\033[0m"
-        echo -e "\033[32m 7. install Baota security system\033[0m"
+        echo -e "\033[32m 3. set sudo passwd\033[0m"
+        echo -e "\033[32m 4. install Baota panel\033[0m"
+        echo -e "\033[32m 5. install Baota safety monitoring\033[0m"
+        echo -e "\033[32m 6. install Baota WAF\033[0m"
+        echo -e "\033[32m 7. install Baota log analysis\033[0m"
+        echo -e "\033[32m 8. install Baota security system\033[0m"
         echo -e "\033[32m 0. Exit \033[0m"
         echo -e "\033[32m ******** \033[0m"
 
@@ -29,7 +30,7 @@ main_menu() {
             # SSH 配置
             echo "Configuring SSH..."
             sudo bash -c "sed -i 's/^.PermitRootLogin .*/PermitRootLogin yes/g' /etc/ssh/sshd_config"
-            sudo bash -c "sed -i 's/^.PasswordAuthentication .*/PasswordAuthentication yes/g' /etc/ssh/sshd_config“
+            sudo bash -c "sed -i 's/^.PasswordAuthentication .*/PasswordAuthentication yes/g' /etc/ssh/sshd_config"
             if ! grep -q "^AllowUsers root" /etc/ssh/sshd_config; then
                 sudo echo "AllowUsers root" >> /etc/ssh/sshd_config
             fi
@@ -79,21 +80,23 @@ main_menu() {
 
             echo "Initial setup completed."
             ;;
-        3)
-            wget -O install.sh https://download.bt.cn/install/install-ubuntu_6.0.sh && sudo bash install.sh ed8484bec
+        3)  sudo passwd root
             ;;
         4)
+            wget -O install.sh https://download.bt.cn/install/install-ubuntu_6.0.sh && sudo bash install.sh ed8484bec
+            ;;
+        5)
             if [ -f /usr/bin/curl ]; then curl -sSO https://download.bt.cn/install/install_btmonitor.sh; else wget -O install_btmonitor.sh https://download.bt.cn/install/install_btmonitor.sh; fi
             bash install_btmonitor.sh
             ;;
-        5)
+        6)
             URL=https://download.bt.cn/cloudwaf/scripts/install_cloudwaf.sh && if [ -f /usr/bin/curl ]; then curl -sSO "$URL"; else wget -O install_cloudwaf.sh "$URL"; fi
             bash install_cloudwaf.sh
             ;;
-        6)
+        7)
             curl -sSO http://download.bt.cn/btlogs/btlogs.sh && bash btlogs.sh install
             ;;
-        7) 
+        8) 
             URL=https://download.bt.cn/bthids/scripts/install_hids.sh && if [ -f /usr/bin/curl ];then curl -sSO "$URL" ;else wget -O install_hids.sh "$URL"; fi
             bash install_hids.sh
             ;;
@@ -105,6 +108,7 @@ main_menu() {
             echo "Invalid selection"
             ;;
         esac
+        read -p "Press Enter to continue..."
     done
 }
 

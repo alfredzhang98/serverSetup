@@ -268,6 +268,7 @@ function generate_ssh_keys() {
 
 # Main menu function
 main_menu() {
+  sudo su
   while true; do
     echo -e "\033[32m ******** \033[0m"
     echo -e "\033[32m1. View SSH Configuration\033[0m"
@@ -319,6 +320,7 @@ main_menu() {
     0) break ;;
     *) echo "Invalid selection." ;;
     esac
+    read -p "Press Enter to continue..."
   done
 }
 

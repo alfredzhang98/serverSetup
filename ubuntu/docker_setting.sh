@@ -295,6 +295,7 @@ function reset_docker_configuration() {
 }
 
 main_menu() {
+    sudo su
     while true; do
         echo -e "\033[32m ********** \033[0m"
         echo -e "\033[32m Please select an operation to perform: \033[0m"
@@ -364,6 +365,7 @@ main_menu() {
         0) exit 0 ;;
         *) echo "Invalid selection" ;;
         esac
+        read -p "Press Enter to continue..."
     done
 }
 

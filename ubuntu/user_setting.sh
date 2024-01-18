@@ -232,6 +232,7 @@ function group_setting_menu() {
     0) break ;;
     *) echo "Invalid selection." ;;
     esac
+    read -p "Press Enter to continue..."
   done
 }
 
@@ -261,6 +262,7 @@ function user_setting_menu() {
     0) break ;;
     *) echo "Invalid selection." ;;
     esac
+    read -p "Press Enter to continue..."
   done
 }
 
@@ -270,6 +272,7 @@ echo "Make sure the group exists before setting a new user"
 echo "****************************************************************"
 
 main_menu() {
+  sudo su
   while true; do
     echo -e "\033[32m1. Group setting\033[0m"
     echo -e "\033[32m2. User setting\033[0m"
@@ -282,6 +285,7 @@ main_menu() {
     0) break ;;
     *) echo "Invalid selection." ;;
     esac
+    read -p "Press Enter to continue..."
   done
 }
 main_menu
