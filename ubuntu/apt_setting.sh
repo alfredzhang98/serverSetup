@@ -28,8 +28,8 @@ main_menu() {
         2)
             # SSH 配置
             echo "Configuring SSH..."
-            sudo sed -i 's/^.PermitRootLogin .*/PermitRootLogin yes/g' /etc/ssh/sshd_config
-            sudo sed -i 's/^.PasswordAuthentication .*/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+            sudo bash -c "sed -i 's/^.PermitRootLogin .*/PermitRootLogin yes/g' /etc/ssh/sshd_config"
+            sudo bash -c "sed -i 's/^.PasswordAuthentication .*/PasswordAuthentication yes/g' /etc/ssh/sshd_config“
             if ! grep -q "^AllowUsers root" /etc/ssh/sshd_config; then
                 sudo echo "AllowUsers root" >> /etc/ssh/sshd_config
             fi

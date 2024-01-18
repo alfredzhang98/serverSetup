@@ -54,7 +54,7 @@ function change_ssh_port() {
     if [[ "$new_port" =~ ^[0-9]+$ ]] && [ "$new_port" -ge 1 ] && [ "$new_port" -le 65535 ]; then
         # Find the existing Port configuration and replace it with the new port number
         if grep -q "^Port " "$SSH_CONFIG_FILE"; then
-            sudo sed -i "s/^Port .*/Port $new_port/" "$SSH_CONFIG_FILE"
+            sudo bash -c "sed -i "s/^Port .*/Port $new_port/" "$SSH_CONFIG_FILE""
         else
             sudo echo "Port $new_port" >> "$SSH_CONFIG_FILE"
         fi
@@ -72,8 +72,8 @@ function toggle_permit_root_login() {
   
   read -p "Set PermitRootLogin (yes/no/prohibit-password): " choice
   if [[ "$choice" == "yes" || "$choice" == "no" || "$choice" == "prohibit-password" ]]; then
-    sudo sed -i "s/^#PermitRootLogin.*/PermitRootLogin prohibit-password/" "$SSH_CONFIG_FILE"
-    sudo sed -i "s/^PermitRootLogin.*/PermitRootLogin $choice/" "$SSH_CONFIG_FILE"
+    sudo bash -c "sed -i "s/^#PermitRootLogin.*/PermitRootLogin prohibit-password/" "$SSH_CONFIG_FILE""
+    sudo bash -c "sed -i "s/^PermitRootLogin.*/PermitRootLogin $choice/" "$SSH_CONFIG_FILE""
     echo "PermitRootLogin set to $choice"
   else
     sudo echo "Invalid input. Please enter 'yes', 'no', or 'prohibit-password'."
@@ -85,8 +85,8 @@ function toggle_permit_root_login() {
 function toggle_pubkey_authentication() {
   read -p "Enable Pubkey Authentication? (yes/no): " choice
   if [[ "$choice" == "yes" || "$choice" == "no" ]]; then
-    sudo sed -i "s/^#PubkeyAuthentication.*/PubkeyAuthentication no/" "$SSH_CONFIG_FILE"
-    sudo sed -i "s/^PubkeyAuthentication.*/PubkeyAuthentication $choice/" "$SSH_CONFIG_FILE"
+    sudo bash -c "sed -i "s/^#PubkeyAuthentication.*/PubkeyAuthentication no/" "$SSH_CONFIG_FILE""
+    sudo bash -c "sed -i "s/^PubkeyAuthentication.*/PubkeyAuthentication $choice/" "$SSH_CONFIG_FILE""
     echo "Pubkey Authentication set to $choice"
   else
     echo "Invalid input. Please enter 'yes' or 'no'."
@@ -98,8 +98,8 @@ function toggle_pubkey_authentication() {
 function toggle_password_authentication() {
   read -p "Enable Password Authentication? (yes/no): " choice
   if [[ "$choice" == "yes" || "$choice" == "no" ]]; then
-    sudo sed -i "s/^#PasswordAuthentication.*/PasswordAuthentication yes/" "$SSH_CONFIG_FILE"
-    sudo sed -i "s/^PasswordAuthentication.*/PasswordAuthentication $choice/" "$SSH_CONFIG_FILE"
+    sudo bash -c "sed -i "s/^#PasswordAuthentication.*/PasswordAuthentication yes/" "$SSH_CONFIG_FILE""
+    sudo bash -c "sed -i "s/^PasswordAuthentication.*/PasswordAuthentication $choice/" "$SSH_CONFIG_FILE""
     echo "Password Authentication set to $choice"
   else
     echo "Invalid input. Please enter 'yes' or 'no'."
@@ -192,7 +192,7 @@ function set_user_permission() {
         if grep "AllowUsers.*$username" "$SSH_CONFIG_FILE" > /dev/null; then
             echo "User $username is already allowed in SSH config."
         else
-            sudo sed -i "/^AllowUsers/s/$/ $username/" "$SSH_CONFIG_FILE"
+            sudo bash -c "sed -i "/^AllowUsers/s/$/ $username/" "$SSH_CONFIG_FILE""
             echo "User $username added to AllowUsers in SSH config."
         fi
     else
