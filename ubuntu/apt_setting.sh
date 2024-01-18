@@ -33,6 +33,7 @@ main_menu() {
             sudo apt-get install -y fail2ban
             sudo systemctl enable fail2ban
             sudo systemctl start fail2ban
+            sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 
             # 防火墙配置
             echo "Configuring Firewall..."
@@ -44,7 +45,7 @@ main_menu() {
             # 安装 firewalld
             sudo apt-get install -y firewalld
 
-            # 禁用 iptables ifw
+            # 禁用 iptables ufw
             if sudo systemctl is-active --quiet iptables; then
                 sudo systemctl stop iptables
                 sudo systemctl disable iptables
