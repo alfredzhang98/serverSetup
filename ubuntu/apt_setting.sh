@@ -6,7 +6,7 @@ main_menu() {
         echo -e "\033[32m ******** \033[0m"
         echo -e "\033[32m Please select an operation to perform: \033[0m"
         echo -e "\033[32m 1. update apt (Face the kdump-tools and using outdated libraries problems, please run it twice if not see suuccess)\033[0m"
-        echo -e "\033[32m 2. initial apt packages install\033[0m"
+        echo -e "\033[32m 2. initial apt packages install(once is ok)\033[0m"
         echo -e "\033[32m 3. install Baota panel\033[0m"
         echo -e "\033[32m 4. install Baota safety monitoring\033[0m"
         echo -e "\033[32m 5. install Baota WAF\033[0m"
