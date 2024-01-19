@@ -5,7 +5,7 @@ main_menu() {
     while true; do
         echo -e "\033[32m ******** \033[0m"
         echo -e "\033[32m Please select an operation to perform: \033[0m"
-        echo -e "\033[32m 1. update apt (Face the kdump-tools and using outdated libraries problems, please run it twice if not see suuccess)\033[0m"
+        echo -e "\033[32m 1. update apt (facing kdump-tools configs and restart new packages configs)\033[0m"
         echo -e "\033[32m 2. set sudo passwd\033[0m"
         echo -e "\033[32m 3. initial apt packages install(once is ok)\033[0m"
         echo -e "\033[32m 4. install Baota panel\033[0m"
@@ -21,8 +21,11 @@ main_menu() {
         case $choice in
         1)
             # 系统更新
-            echo "Updating and upgrading system packages..."
+            echo "This shell should run twice to check update and upgrade finish"
+            read -p "Press Enter to continue..."
+            echo "Updating system packages..."
             sudo apt-get update -y
+            echo "Upgrading system packages"
             sudo apt-get upgrade -y
             echo "Success updating and upgrading system packages..."
             ;;
