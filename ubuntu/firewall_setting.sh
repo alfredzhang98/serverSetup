@@ -72,17 +72,17 @@ main_menu() {
             sudo firewall-cmd --reload
             sudo systemctl restart firewalld
             ;;
-        1)
+        2)
             systemctl status firewalld
             ;;
-        2)
+        3)
             echo "Listing ports for all zones:"
             for zone in $(firewall-cmd --get-zones); do
                 echo "Zone: $zone"
                 firewall-cmd --zone=$zone --list-ports
             done
             ;;
-        3)
+        4)
             echo "Listing all available services:"
             firewall-cmd --get-services
             ;;
