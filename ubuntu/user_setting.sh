@@ -96,8 +96,8 @@ function add_user() {
 
   if ! grep -q "^AllowUsers $username" /etc/ssh/sshd_config; then
     echo "AllowUsers $username" >> /etc/ssh/sshd_config
-    sudo systemctl restart sshd.service
-    sudo systemctl enable sshd.service
+    sudo systemctl restart ssh.service
+    sudo systemctl enable ssh.service
   fi
 
   if [ ! -d "/home/$username/.ssh" ]; then
@@ -138,8 +138,8 @@ function delete_user() {
 
       # Remove user from SSH configuration
       sudo sed -i "/$username/d" /etc/ssh/sshd_config
-      sudo systemctl restart sshd.service
-      sudo systemctl enable sshd.service
+      sudo systemctl restart ssh.service
+      sudo systemctl enable ssh.service
     else
       echo "Delete canceled."
     fi

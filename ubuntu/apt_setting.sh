@@ -3,8 +3,8 @@
 SSH_CONFIG_FILE="/etc/ssh/sshd_config"
 
 function user_exists() {
-  local username=\$1
-  id "$username" >/dev/null 2>&1
+  local username=$1
+  getent passwd "$username" >/dev/null 2>&1
 }
 
 function enable_and_start_ssh() {
