@@ -155,7 +155,7 @@ function enable_and_start_ssh() {
 function reinstall_ssh() {
   echo "Reinstalling SSH..."
   confirm_operation || return
-  if apt remove -y openssh-server && apt install -y openssh-server; then
+  if sudo apt autoremove -y openssh-server && sudo apt-get install --reinstall openssh-server; then
     enable_and_start_ssh
     echo "SSH reinstalled and service restarted."
   else

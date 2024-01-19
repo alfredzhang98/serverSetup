@@ -133,10 +133,12 @@ main_menu() {
             sudo firewall-cmd --zone=public --add-service=http --permanent
             sudo firewall-cmd --zone=public --add-service=https --permanent
             sudo firewall-cmd --reload
+            sudo firewall-cmd --zone=public --add-port=22/tcp --permanent
+            sudo firewall-cmd --zone=public --add-port=80/tcp --permanent
+            sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
+            sudo firewall-cmd --zone=public --add-port=3389/udp --permanent
+            sudo firewall-cmd --zone=public --add-port=3389/tcp --permanent
 
-            # 重启 SSH 服务以应用配置更改
-            sudo systemctl restart sshd.service
-            sudo systemctl enable sshd.service
 
             echo "Initial setup completed."
             ;;
