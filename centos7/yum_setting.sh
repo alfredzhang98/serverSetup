@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SSH_CONFIG_FILE="/etc/ssh/sshd_config"
+
 function modify_ssh_config() {
     local config_name="$1"
     local default_choice="$2"
