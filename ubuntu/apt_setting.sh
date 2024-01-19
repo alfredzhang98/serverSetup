@@ -6,8 +6,8 @@ main_menu() {
         echo -e "\033[32m ******** \033[0m"
         echo -e "\033[32m Please select an operation to perform: \033[0m"
         echo -e "\033[32m 1. update apt (Face the kdump-tools and using outdated libraries problems, please run it twice if not see suuccess)\033[0m"
-        echo -e "\033[32m 2. initial apt packages install(once is ok)\033[0m"
-        echo -e "\033[32m 3. set sudo passwd\033[0m"
+        echo -e "\033[32m 2. set sudo passwd\033[0m"
+        echo -e "\033[32m 3. initial apt packages install(once is ok)\033[0m"
         echo -e "\033[32m 4. install Baota panel\033[0m"
         echo -e "\033[32m 5. install Baota safety monitoring\033[0m"
         echo -e "\033[32m 6. install Baota WAF\033[0m"
@@ -26,19 +26,18 @@ main_menu() {
             sudo apt-get upgrade -y
             echo "Success updating and upgrading system packages..."
             ;;
-        2)
+        2)  sudo passwd root
+            ;;
+        3)
             # SSH 配置
             echo "Configuring SSH..."
-            sudo bash -c "sed -i 's/^.PermitRootLogin .*/PermitRootLogin yes/g' /etc/ssh/sshd_config"
-            sudo bash -c "sed -i 's/^.PasswordAuthentication .*/PasswordAuthentication yes/g' /etc/ssh/sshd_config"
-            if ! grep -q "^AllowUsers root" /etc/ssh/sshd_config; then
-                sudo echo "AllowUsers root" >> /etc/ssh/sshd_config
-            fi
-            if ! grep -q "^AllowUsers ubuntu" /etc/ssh/sshd_config; then
-                sudo echo "AllowUsers ubuntu" >> /etc/ssh/sshd_config
-            fi
-            sudo systemctl restart sshd.service
-            sudo systemctl enable sshd.service
+            enable_and_start_ssh
+            modify_ssh_config "PermitRootLogin" "prohibit-password" "yes"
+            modify_ssh_config "PubkeyAuthentication" "yes" "yes"
+            modify_ssh_config "PasswordAuthentication" "no" "yes"
+            modify_ssh_config "PermitEmptyPasswords" "no" "no"
+            set_user_permission "root"
+            set_user_permission "ubuntu"
 
             # 安装并配置 Fail2Ban
             echo "Installing Fail2Ban..."
@@ -80,8 +79,6 @@ main_menu() {
 
             echo "Initial setup completed."
             ;;
-        3)  sudo passwd root
-            ;;
         4)
             wget -O install.sh https://download.bt.cn/install/install-ubuntu_6.0.sh && sudo bash install.sh ed8484bec
             ;;
@@ -112,4 +109,5 @@ main_menu() {
     done
 }
 
+source ssh_setting.sh
 main_menu

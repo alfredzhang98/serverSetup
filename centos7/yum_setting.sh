@@ -2,16 +2,16 @@
 
 main_menu() {
     while true; do
-
         echo -e "\033[32m ******** \033[0m"
         echo -e "\033[32m Please select an operation to perform: \033[0m"
         echo -e "\033[32m 1. update yum\033[0m"
-        echo -e "\033[32m 2. initial install yum packages (once is ok)\033[0m"
-        echo -e "\033[32m 3. install Baota panel\033[0m"
-        echo -e "\033[32m 4. install Baota safety monitoring\033[0m"
-        echo -e "\033[32m 5. install Baota WAF\033[0m"
-        echo -e "\033[32m 6. install Baota log analysis\033[0m"
-        echo -e "\033[32m 7. install Baota security system\033[0m"
+        echo -e "\033[32m 2. set sudo passwd\033[0m"
+        echo -e "\033[32m 3. initial install yum packages (once is ok)\033[0m"
+        echo -e "\033[32m 4. install Baota panel\033[0m"
+        echo -e "\033[32m 5. install Baota safety monitoring\033[0m"
+        echo -e "\033[32m 6. install Baota WAF\033[0m"
+        echo -e "\033[32m 7. install Baota log analysis\033[0m"
+        echo -e "\033[32m 8. install Baota security system\033[0m"
         echo -e "\033[32m 0. Exit \033[0m"
         echo -e "\033[32m ******** \033[0m"
 
@@ -24,16 +24,17 @@ main_menu() {
             yum -y update
             echo "Success updating system packages"
             ;;
-        2)
+        2)  sudo passwd root
+            ;;
+        3)
             # SSH 配置
             echo "Configuring SSH..."
-            sudo sed -i 's/^.PermitRootLogin .*/PermitRootLogin yes/g' /etc/ssh/sshd_config
-            sudo sed -i 's/^.PasswordAuthentication .*/PasswordAuthentication yes/g' /etc/ssh/sshd_config
-            if ! grep -q "^AllowUsers root" /etc/ssh/sshd_config; then
-                echo "AllowUsers root" >> /etc/ssh/sshd_config
-            fi
-            sudo systemctl restart sshd.service
-            sudo systemctl enable sshd.service
+            enable_and_start_ssh
+            modify_ssh_config "PermitRootLogin" "prohibit-password" "yes"
+            modify_ssh_config "PubkeyAuthentication" "yes" "yes"
+            modify_ssh_config "PasswordAuthentication" "no" "yes"
+            modify_ssh_config "PermitEmptyPasswords" "no" "no"
+            set_user_permission "root"
 
             # 自动更新工具安装与配置
             echo "Installing and configuring yum-cron for automatic updates..."
@@ -93,4 +94,5 @@ main_menu() {
     done
 }
 
+source ssh_setting.sh
 main_menu
