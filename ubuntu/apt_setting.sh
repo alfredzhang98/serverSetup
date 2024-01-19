@@ -92,13 +92,6 @@ main_menu() {
             # SSH 配置
             echo "Configuring SSH..."
             sudo apt-get install ssh -y
-            enable_and_start_ssh
-            modify_ssh_config "PermitRootLogin" "prohibit-password" "yes"
-            modify_ssh_config "PubkeyAuthentication" "yes" "yes"
-            modify_ssh_config "PasswordAuthentication" "no" "yes"
-            modify_ssh_config "PermitEmptyPasswords" "no" "no"
-            set_user_permission "root"
-            set_user_permission "ubuntu"
 
             # 安装并配置 Fail2Ban
             echo "Installing Fail2Ban..."
@@ -138,6 +131,14 @@ main_menu() {
             sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
             sudo firewall-cmd --zone=public --add-port=3389/udp --permanent
             sudo firewall-cmd --zone=public --add-port=3389/tcp --permanent
+
+            enable_and_start_ssh
+            modify_ssh_config "PermitRootLogin" "prohibit-password" "yes"
+            modify_ssh_config "PubkeyAuthentication" "yes" "yes"
+            modify_ssh_config "PasswordAuthentication" "no" "yes"
+            modify_ssh_config "PermitEmptyPasswords" "no" "no"
+            set_user_permission "root"
+            set_user_permission "ubuntu"
 
 
             echo "Initial setup completed."
