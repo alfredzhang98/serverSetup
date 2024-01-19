@@ -56,7 +56,6 @@ function main_menu() {
         *) echo "Invalid selection"
            ;;
     esac
-    read -p "Press Enter to continue..."
 }
 
 main_menu

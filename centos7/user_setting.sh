@@ -231,6 +231,7 @@ function group_setting_menu() {
     3) delete_group ;;
     0) break ;;
     *) echo "Invalid selection." ;;
+    read -p "Press Enter to continue..."
     esac
   done
 }
@@ -261,6 +262,7 @@ function user_setting_menu() {
     0) break ;;
     *) echo "Invalid selection." ;;
     esac
+    read -p "Press Enter to continue..."
   done
 }
 
@@ -282,6 +284,7 @@ main_menu() {
     0) break ;;
     *) echo "Invalid selection." ;;
     esac
+    read -p "Press Enter to continue..."
   done
 }
 main_menu

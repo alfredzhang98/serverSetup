@@ -335,6 +335,7 @@ main_menu() {
     0) break ;;
     *) echo "Invalid selection." ;;
     esac
+    read -p "Press Enter to continue..."
   done
 }
 
