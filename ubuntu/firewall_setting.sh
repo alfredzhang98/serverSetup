@@ -19,9 +19,10 @@ main_menu() {
     while true; do
         echo -e "\033[32m ******** \033[0m"
         echo -e "\033[32m Please select an operation to perform: \033[0m"
-        echo -e "\033[32m 1. View firewall status \033[0m"
-        echo -e "\033[32m 2. List ports in all zones \033[0m"
-        echo -e "\033[32m 3. List all available services \033[0m"
+        echo -e "\033[32m 1. Init firewall \033[0m"
+        echo -e "\033[32m 2. View firewall status \033[0m"
+        echo -e "\033[32m 3. List ports in all zones \033[0m"
+        echo -e "\033[32m 4. List all available services \033[0m"
         echo -e "\033[32m ******** \033[0m"
         echo -e "\033[32m 6. Restart firewall \033[0m"
         echo -e "\033[32m 7. Start firewall \033[0m"
@@ -41,6 +42,36 @@ main_menu() {
         read -p "Enter the corresponding number for the operation: " choice
 
         case $choice in
+        1)  
+            if systemctl is-active --quiet nftables; then
+                echo "Stopping nftables..."
+                sudo systemctl stop nftables
+            else
+                echo "nftables is not running."
+            fi
+            if systemctl is-active --quiet ufw; then
+                echo "Stopping ufw..."
+                sudo systemctl stop ufw
+                sudo ufw disable
+            else
+                echo "ufw is not running."
+            fi
+            sudo systemctl start firewalld
+            sudo systemctl enable firewalld
+
+            sudo firewall-cmd --zone=public --add-service=ssh --permanent
+            sudo firewall-cmd --zone=public --add-service=http --permanent
+            sudo firewall-cmd --zone=public --add-service=https --permanent
+            sudo firewall-cmd --zone=public --add-port=22/tcp --permanent
+            sudo firewall-cmd --zone=public --add-port=80/tcp --permanent
+            sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
+            sudo firewall-cmd --zone=public --add-port=3389/udp --permanent
+            sudo firewall-cmd --zone=public --add-port=3389/tcp --permanent
+            sudo firewall-cmd --add-protocol=icmp --permanen
+            sudo firewall-cmd --add-service=ssh --permanent
+            sudo firewall-cmd --reload
+            sudo systemctl restart firewalld
+            ;;
         1)
             systemctl status firewalld
             ;;

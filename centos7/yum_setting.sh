@@ -80,14 +80,9 @@ main_menu() {
         2)  sudo passwd root
             ;;
         3)
-            # SSH 配置
+            # ssh
             echo "Configuring SSH..."
-            enable_and_start_ssh
-            modify_ssh_config "PermitRootLogin" "prohibit-password" "yes"
-            modify_ssh_config "PubkeyAuthentication" "yes" "yes"
-            modify_ssh_config "PasswordAuthentication" "no" "yes"
-            modify_ssh_config "PermitEmptyPasswords" "no" "no"
-            set_user_permission "root"
+            yum -y install ssh
 
             # 自动更新工具安装与配置
             echo "Installing and configuring yum-cron for automatic updates..."
@@ -115,6 +110,14 @@ main_menu() {
             yum -y install fail2ban
             systemctl start fail2ban
             systemctl enable fail2ban
+
+            # ssh
+            enable_and_start_ssh
+            modify_ssh_config "PermitRootLogin" "prohibit-password" "yes"
+            modify_ssh_config "PubkeyAuthentication" "yes" "yes"
+            modify_ssh_config "PasswordAuthentication" "no" "yes"
+            modify_ssh_config "PermitEmptyPasswords" "no" "no"
+            set_user_permission "root"
 
             echo "Initial setup completed."
             ;;

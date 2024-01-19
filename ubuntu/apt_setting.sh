@@ -89,49 +89,22 @@ main_menu() {
         2)  sudo passwd root
             ;;
         3)
-            # SSH 配置
+            # ssh
             echo "Configuring SSH..."
             sudo apt-get install ssh -y
 
-            # 安装并配置 Fail2Ban
+            # fail2Ban
             echo "Installing Fail2Ban..."
             sudo apt-get install -y fail2ban
             sudo systemctl enable fail2ban
             sudo systemctl start fail2ban
 
-            # 防火墙配置
+            # firewall
             echo "Configuring Firewall..."
-            # 检查并移除 iptables-persistent 和 netfilter-persistent
-            if service netfilter-persistent status | grep -q "Active: active"; then
-                sudo apt-get remove iptables-persistent netfilter-persistent -y
-            fi
+            sudo apt-get install -y firewalld nftables ufw
+            sudo systemctl stop firewalld
 
-            # 安装 firewalld
-            sudo apt-get install -y firewalld
-
-            # 禁用 iptables ufw
-            if sudo systemctl is-active --quiet iptables; then
-                sudo systemctl stop iptables
-                sudo systemctl disable iptables
-            fi
-            if sudo ufw status | grep -q "Status: active"; then
-                sudo ufw disable
-            fi
-            # 启动并启用 firewalld
-            sudo systemctl start firewalld
-            sudo systemctl enable firewalld
-
-            # 设置基本防火墙规则（根据需要调整）
-            sudo firewall-cmd --zone=public --add-service=ssh --permanent
-            sudo firewall-cmd --zone=public --add-service=http --permanent
-            sudo firewall-cmd --zone=public --add-service=https --permanent
-            sudo firewall-cmd --reload
-            sudo firewall-cmd --zone=public --add-port=22/tcp --permanent
-            sudo firewall-cmd --zone=public --add-port=80/tcp --permanent
-            sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
-            sudo firewall-cmd --zone=public --add-port=3389/udp --permanent
-            sudo firewall-cmd --zone=public --add-port=3389/tcp --permanent
-
+            # ssh
             enable_and_start_ssh
             modify_ssh_config "PermitRootLogin" "prohibit-password" "yes"
             modify_ssh_config "PubkeyAuthentication" "yes" "yes"
@@ -139,7 +112,6 @@ main_menu() {
             modify_ssh_config "PermitEmptyPasswords" "no" "no"
             set_user_permission "root"
             set_user_permission "ubuntu"
-
 
             echo "Initial setup completed."
             ;;
