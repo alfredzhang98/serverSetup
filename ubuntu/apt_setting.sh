@@ -93,15 +93,9 @@ main_menu() {
             echo "Configuring SSH..."
             sudo apt-get install ssh -y
 
-            # fail2Ban
-            echo "Installing Fail2Ban..."
-            sudo apt-get install -y fail2ban
-            sudo systemctl enable fail2ban
-            sudo systemctl start fail2ban
-
             # firewall
             echo "Configuring Firewall..."
-            sudo apt-get install -y firewalld nftables ufw
+            sudo apt-get install -y firewalld
             sudo systemctl stop firewalld
 
             # ssh
