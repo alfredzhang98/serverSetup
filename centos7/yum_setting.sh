@@ -84,19 +84,14 @@ main_menu() {
             echo "Configuring SSH..."
             yum -y install ssh
 
-            # 自动更新工具安装与配置
+            # yum-cron
             echo "Installing and configuring yum-cron for automatic updates..."
             yum -y install yum-cron
             sed -i 's/apply_updates = no/apply_updates = yes/' /etc/yum/yum-cron.conf
             systemctl start yum-cron
             systemctl enable yum-cron
 
-            # 防火墙配置
-            echo "Configuring Firewall..."
-            if systemctl is-active --quiet iptables; then
-                systemctl stop iptables
-                systemctl disable iptables
-            fi
+            # Firewall
             yum -y install firewalld
             systemctl start firewalld
             systemctl enable firewalld
@@ -104,12 +99,6 @@ main_menu() {
             # 设置基本防火墙规则
             firewall-cmd --zone=public --add-service=ssh --permanent
             firewall-cmd --reload
-
-            # 安装并配置 Fail2Ban
-            echo "Installing Fail2Ban..."
-            yum -y install fail2ban
-            systemctl start fail2ban
-            systemctl enable fail2ban
 
             # ssh
             enable_and_start_ssh
