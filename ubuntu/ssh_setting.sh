@@ -65,7 +65,7 @@ function change_ssh_port() {
     fi
 }
 
-modify_ssh_config() {
+function modify_ssh_config() {
     local config_name="$1"
     local default_choice="$2"
     local choice="$3"

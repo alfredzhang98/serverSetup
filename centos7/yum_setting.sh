@@ -1,5 +1,46 @@
 #!/bin/bash
 
+function modify_ssh_config() {
+    local config_name="$1"
+    local default_choice="$2"
+    local choice="$3"
+    if grep -q "^#$config_name" "$SSH_CONFIG_FILE"; then
+        sed -i "s/^#$config_name.*/#$config_name $default_choice/" "$SSH_CONFIG_FILE"
+        if ! grep -q "^$config_name" "$SSH_CONFIG_FILE"; then
+            sed -i "/^#$config_name/a $config_name $choice" "$SSH_CONFIG_FILE"
+        fi
+    else
+        echo "#$config_name $default_choice" >> "$SSH_CONFIG_FILE"
+        echo "$config_name $choice" >> "$SSH_CONFIG_FILE"
+    fi
+    if grep -q "^$config_name" "$SSH_CONFIG_FILE"; then
+        sed -i "s/^$config_name.*/$config_name $choice/" "$SSH_CONFIG_FILE"
+    fi
+}
+
+function set_user_permission() {
+    local username="$1"
+    if [ -z "$username" ]; then
+        read -p "Enter username: " username
+    fi
+    if ! user_exists "$username"; then
+        echo "User $username does not exist."
+        return
+    fi
+    if grep -q "^AllowUsers" "$SSH_CONFIG_FILE"; then
+        if grep -q "AllowUsers.*$username" "$SSH_CONFIG_FILE"; then
+            echo "User $username is already allowed in SSH config."
+        else
+            sed -i "/^AllowUsers/s/$/ $username/" "$SSH_CONFIG_FILE"
+            echo "User $username added to AllowUsers in SSH config."
+        fi
+    else
+        echo "AllowUsers $username" >> "$SSH_CONFIG_FILE"
+        echo "AllowUsers with user $username added to SSH config."
+    fi
+    systemctl restart sshd.service
+}
+
 main_menu() {
     while true; do
         echo -e "\033[32m ******** \033[0m"
@@ -94,5 +135,4 @@ main_menu() {
     done
 }
 
-source ssh_setting.sh
 main_menu
