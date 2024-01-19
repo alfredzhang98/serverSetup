@@ -43,7 +43,7 @@ function view_ssh_config() {
 
 function vim_change_sshd_config() {
   sudo vim "$SSH_CONFIG_FILE"
-  sudo systemctl restart ssh.service
+  sudo systemctl restart sshd.service
 }
 
 # Function to change SSH port
@@ -59,7 +59,7 @@ function change_ssh_port() {
             echo "Port $new_port" | sudo tee -a "$SSH_CONFIG_FILE"
         fi
         echo "SSH port changed to $new_port"
-        sudo systemctl restart ssh.service
+        sudo systemctl restart sshd.service
     else
         echo "Invalid port. Please enter a number between 1 and 65535."
     fi
@@ -95,7 +95,7 @@ function toggle_permit_root_login() {
   else
     echo "Invalid input. Please enter 'yes', 'no', or 'prohibit-password'."
   fi
-  sudo systemctl restart ssh.service
+  sudo systemctl restart sshd.service
 }
 
 # Toggle Public Key Authentication
@@ -107,7 +107,7 @@ function toggle_pubkey_authentication() {
   else
     echo "Invalid input. Please enter 'yes' or 'no'."
   fi
-  sudo systemctl restart ssh.service
+  sudo systemctl restart sshd.service
 }
 
 # Function to enable or disable password authentication
@@ -119,7 +119,7 @@ function toggle_password_authentication() {
   else
     echo "Invalid input. Please enter 'yes' or 'no'."
   fi
-  sudo systemctl restart ssh.service
+  sudo systemctl restart sshd.service
 }
 
 # Function to backup the SSH configuration file
@@ -141,15 +141,15 @@ function restore_ssh_config() {
     if [ -f "$backup_file" ]; then
         sudo cp "$backup_file" "$SSH_CONFIG_FILE"
         echo "Configuration restored from $backup_file"
-        sudo systemctl restart ssh.service
+        sudo systemctl restart sshd.service
     else
         echo "Backup file not found."
     fi
 }
 
 function enable_and_start_ssh() {
-  sudo systemctl enable ssh.service
-  sudo systemctl start ssh.service
+  sudo systemctl enable sshd.service
+  sudo systemctl start sshd.service
 }
 
 function reinstall_ssh() {
@@ -190,7 +190,7 @@ function reset_root_authorized_keys() {
         sudo chmod 700 /root/.ssh
         sudo chmod 600 /root/.ssh/authorized_keys
         echo "authorized_keys file reset and permissions set, please put in your public keys in this file"
-        sudo systemctl restart ssh.service
+        sudo systemctl restart sshd.service
     else
         echo "Operation cancelled."
     fi
@@ -220,7 +220,7 @@ function set_user_permission() {
         echo "AllowUsers with user $username added to SSH config."
     fi
 
-    sudo systemctl restart ssh.service
+    sudo systemctl restart sshd.service
 }
 
 function get_user_group() {
@@ -327,9 +327,9 @@ main_menu() {
     8) restore_ssh_config ;;
 
     10) reinstall_ssh ;;
-    11) sudo systemctl status ssh.service ;;
+    11) sudo systemctl status sshd.service ;;
     12) enable_and_start_ssh ;;
-    13) sudo systemctl restart ssh.service ;;
+    13) sudo systemctl restart sshd.service ;;
 
     20) edit_root_authorized_keys ;;
     21) reset_root_authorized_keys ;;

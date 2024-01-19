@@ -8,8 +8,8 @@ function user_exists() {
 }
 
 function enable_and_start_ssh() {
-  sudo systemctl enable ssh.service
-  sudo systemctl start ssh.service
+  sudo systemctl enable sshd.service
+  sudo systemctl start sshd.service
 }
 
 function modify_ssh_config() {
@@ -54,7 +54,7 @@ function set_user_permission() {
         echo "AllowUsers with user $username added to SSH config."
     fi
 
-    sudo systemctl restart ssh.service
+    sudo systemctl restart sshd.service
 }
 
 main_menu() {
@@ -91,6 +91,7 @@ main_menu() {
         3)
             # SSH 配置
             echo "Configuring SSH..."
+            sudo apt-get install ssh -y
             enable_and_start_ssh
             modify_ssh_config "PermitRootLogin" "prohibit-password" "yes"
             modify_ssh_config "PubkeyAuthentication" "yes" "yes"
