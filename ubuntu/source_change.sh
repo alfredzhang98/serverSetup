@@ -39,7 +39,7 @@ function switch_pip_mirror() {
 
 # 主菜单
 function main_menu() {
-    sudo su
+    echo -e "\033[32m Makesure we have su permission \033[0m"
     echo "1. Switch to Domestic Mirrors"
     echo "2. Switch to Default Mirrors"
     read -p "Enter your choice: " choice

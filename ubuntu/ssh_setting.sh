@@ -288,7 +288,7 @@ function generate_ssh_keys() {
 
 # Main menu function
 main_menu() {
-  sudo su
+  echo -e "\033[32m Makesure we have su permission \033[0m"
   while true; do
     echo -e "\033[32m ******** \033[0m"
     echo -e "\033[32m1. View SSH Configuration\033[0m"

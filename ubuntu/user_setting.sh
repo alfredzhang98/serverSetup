@@ -172,7 +172,7 @@ function modify_user_permissions() {
   read -p "Enter username: " username
   # Show current permissions
   echo "Current permissions:"
-  sudo su "$username" -c 'sudo -l'
+  echo -e "\033[32m Makesure we have su permission \033[0m" "$username" -c 'sudo -l'
 
   if ! grep -q "$username" /etc/sudoers; then
     read -p "$username currently has no sudo privilege. Add privilege? (y/n) " add
@@ -272,7 +272,7 @@ echo "Make sure the group exists before setting a new user"
 echo "****************************************************************"
 
 main_menu() {
-  sudo su
+  echo -e "\033[32m Makesure we have su permission \033[0m"
   while true; do
     echo -e "\033[32m1. Group setting\033[0m"
     echo -e "\033[32m2. User setting\033[0m"
