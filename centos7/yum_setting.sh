@@ -2,6 +2,16 @@
 
 SSH_CONFIG_FILE="/etc/ssh/sshd_config"
 
+function user_exists() {
+  local username=\$1
+  id "$username" >/dev/null 2>&1
+}
+
+function enable_and_start_ssh() {
+  systemctl enable sshd.service
+  systemctl start sshd.service
+}
+
 function modify_ssh_config() {
     local config_name="$1"
     local default_choice="$2"
