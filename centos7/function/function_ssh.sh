@@ -332,6 +332,7 @@ function generate_ssh_keys() {
   cat /tmp/tempkey
   rm /tmp/tempkey.pub
   rm /tmp/tempkey
+  systemctl restart sshd.service
   read -p "Please keep your key carefully. Press Enter to continue..."
   clear
 }

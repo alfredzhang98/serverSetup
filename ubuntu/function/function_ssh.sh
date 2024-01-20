@@ -333,6 +333,7 @@ function generate_ssh_keys() {
   cat /tmp/tempkey
   sudo rm /tmp/tempkey.pub
   sudo rm /tmp/tempkey
+  sudo systemctl restart sshd.service
   read -p "Please keep your key carefully. Press Enter to continue..."
   clear
 }
