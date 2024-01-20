@@ -5,7 +5,6 @@ function validate_input() {
         echo "Input cannot be empty"
         return 1
     fi
-    # Add more validation here if needed
 }
 
 function confirm_operation() {
@@ -97,22 +96,22 @@ function save_container_config() {
     echo "network_mode: $network_mode" >> "$yaml_path"
 }
 
-# 镜像名称和标签：指定要运行的镜像，如 docker run ubuntu:18.04。
-# 命令和参数：在容器内执行的命令和参数，如 docker run ubuntu:18.04 /bin/bash。
-# 端口映射 (-p 或 --publish)：将容器内的端口映射到宿主机的端口上，如 -p 8080:80。
-# 卷挂载 (-v 或 --volume)：将宿主机的文件或目录挂载到容器内，例如 -v /host/path:/container/path。
-# 环境变量 (-e 或 --env)：设置容器内的环境变量，例如 -e MY_VAR=value， DATABASE_URL=postgresql://db:5432 通过改变环境变量的值增加容器应用的灵活性和可配置性
-# 名称 (--name)：指定容器的名称，便于识别和管理，如 --name mycontainer。
-## 网络配置 (--net): 指定容器的网络模式，如 --net=bridge。
-## 资源限制：包括内存 (-m 或 --memory) 和 CPU (--cpus) 限制，如 -m 512m 或 --cpus=1.5。
-# 交互模式和TTY (-i，-t): -it 通常一起使用，为容器提供一个交互式终端。
-# 运行模式：如 --detach 或 -d，使容器在后台运行。
-# 用户 (-u 或 --user)：指定运行容器内进程的用户。
-# 挂载设备 (--device)：将宿主机的设备挂载到容器内，如 --device=/dev/sda:/dev/xvdc。
-## 健康检查 (--health-cmd, --health-interval 等)：配置容器的健康检查。
-## 重启策略 (--restart): 设置容器的重启策略，如 --restart=always。
-## 安全选项 (--security-opt): 用于设置容器的安全相关选项。
-## 日志配置 (--log-driver 和 --log-opt): 指定日志记录的驱动和选项
+# Image name and label: Specifies the image to run, e.g. docker run ubuntu:18.04.
+# Commands and arguments: Commands and arguments to execute inside the container, such as docker run ubuntu:18.04 /bin/bash.
+# Port mapping (-p or --publish): Maps a port inside a container to a port on the host, e.g. -p 8080:80.
+# Volume mount (-v or --volume): Mounts a file or directory from the host into the container, e.g. -v /host/path:/container/path.
+# Environment variables (-e or --env): Set environment variables within the container, e.g. -e MY_VAR=value, DATABASE_URL=postgresql://db:5432 Increase the flexibility and configurability of your container application by changing the values of environment variables.
+## Name (--name): Specifies the name of the container for easy identification and management, such as --name mycontainer.
+## Network configuration (--net): Specifies the network mode of the container, e.g. --net=bridge.
+## Resource limits: Includes memory (-m or --memory) and CPU (--cpus) limits, such as -m 512m or --cpus=1.5.
+# Interactive mode and TTY (-i, -t): -it is usually used together to provide an interactive terminal for the container.
+# Run mode: e.g. --detach or -d to make the container run in the background.
+# User (-u or --user): Specifies the user who will run the processes in the container.
+# Mount device (--device): Mounts a host device into the container, e.g. --device=/dev/sda:/dev/xvdc.
+## Health check (--health-cmd, --health-interval, etc.): Configure health check for the container.
+## Restart policy (--restart): Set the restart policy for the container, e.g. --restart=always.
+## Security options (--security-opt): Set security-related options for the container.
+## Logging configuration (--log-driver and --log-opt): Specify logging driver and options
 
 function run_container_basic() {
     local container_name repository tag host_dir privileges devices port_mappings user env_vars run_mode network_mode

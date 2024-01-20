@@ -15,6 +15,30 @@ function confirm_operation() {
     esac
 }
 
+function add_host_keys(){
+    host_keys=(
+    "/etc/ssh/ssh_host_rsa_key"
+    "/etc/ssh/ssh_host_dsa_key"
+    "/etc/ssh/ssh_host_ecdsa_key"
+    "/etc/ssh/ssh_host_ed25519_key"
+  )
+  # Check if the sshd_config file exists
+  if [[ -f "$SSH_CONFIG_FILE" ]]; then
+    # Check if the host key entries already exist in the sshd_config file
+    if grep -Fxq "HostKey ${host_keys[0]}" $SSH_CONFIG_FILE; then
+      echo "HostKey entries already exist in sshd_config. No changes needed."
+    else
+      # Append the host key entries to the sshd_config file
+      for key_file in "${host_keys[@]}"; do
+        echo "HostKey $key_file" | sudo tee -a $SSH_CONFIG_FILE > /dev/null
+      done
+      echo "HostKey entries added to sshd_config."
+    fi
+  else
+    echo "sshd_config file not found."
+  fi
+}
+
 # Function to display key SSH configurations
 function view_ssh_config() {
   echo "SSH Settings:"
@@ -30,15 +54,28 @@ function view_ssh_config() {
   }
 
   # List of key configurations to display
+  # List of key configurations to display
   display_config "Port"
   display_config "PermitRootLogin"
   display_config "PasswordAuthentication"
   display_config "PubkeyAuthentication"
   display_config "PermitEmptyPasswords"
-  # display_config "ClientAliveCountMax"
-  # display_config "ClientAliveInterval"
-  # display_config "AllowTcpForwarding"
-  # display_config "X11Forwarding"
+
+  display_config "MaxAuthTries"
+  display_config "ClientAliveCountMax"
+  display_config "ClientAliveInterval"
+
+  # Determines whether TCP connection keep-alive is enabled. It is recommended that this be set to "yes" to avoid connection timeouts.
+  display_config "TCPKeepAlive"
+  display_config "AllowTcpForwarding"
+  # Determines if X11 forwarding is allowed. If you do not need to run graphical applications in an SSH session, it is recommended that this be set to "no".
+  display_config "X11Forwarding"
+
+  # Specifies the logging level. The default is "INFO", but in production environments it can be set to a higher level (such as "VERBOSE" or "DEBUG") for detailed logging.
+  display_config "LogLevel"
+  # Determines whether Pluggable Authentication Modules (PAM) are used for authentication. It is recommended that this be set to yes to provide advanced authentication features
+  display_config "UsePAM"
+  display_config "AllowUsers"
 }
 
 function vim_change_sshd_config() {
@@ -157,6 +194,12 @@ function reinstall_ssh() {
   confirm_operation || return
   if yum remove -y openssh-server && yum install -y openssh-server; then
     enable_and_start_ssh
+    add_host_keys
+    modify_ssh_config "PermitRootLogin" "prohibit-password" "yes"
+    modify_ssh_config "PubkeyAuthentication" "yes" "yes"
+    modify_ssh_config "PasswordAuthentication" "yes" "yes"
+    modify_ssh_config "PermitEmptyPasswords" "no" "no"
+    set_user_permission "root"
     echo "SSH reinstalled and service restarted."
   else
     echo "Error occurred during SSH reinstallation."

@@ -44,22 +44,8 @@ main_menu() {
 
         case $choice in
         1)  
-            if systemctl is-active --quiet nftables; then
-                echo "Stopping nftables..."
-                sudo systemctl stop nftables
-            else
-                echo "nftables is not running."
-            fi
-            if systemctl is-active --quiet ufw; then
-                echo "Stopping ufw..."
-                sudo systemctl stop ufw
-                sudo ufw disable
-            else
-                echo "ufw is not running."
-            fi
             sudo systemctl start firewalld
             sudo systemctl enable firewalld
-
             sudo firewall-cmd --zone=public --add-service=ssh --permanent
             sudo firewall-cmd --zone=public --add-service=http --permanent
             sudo firewall-cmd --zone=public --add-service=https --permanent
@@ -68,8 +54,6 @@ main_menu() {
             sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
             sudo firewall-cmd --zone=public --add-port=3389/udp --permanent
             sudo firewall-cmd --zone=public --add-port=3389/tcp --permanent
-            sudo firewall-cmd --add-protocol=icmp --permanen
-            sudo firewall-cmd --add-service=ssh --permanent
             sudo firewall-cmd --reload
             sudo systemctl restart firewalld
             ;;

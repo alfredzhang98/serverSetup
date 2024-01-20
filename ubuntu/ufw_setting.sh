@@ -85,14 +85,6 @@ main_menu() {
 
         case $choice in
             1)
-                if systemctl is-active --quiet nftables; then
-                    echo "Stopping nftables..."
-                    sudo systemctl stop nftables
-                    # sudo systemctl status nftables
-                else
-                    echo "nftables is not running."
-                fi
-
                 # Check if firewalld is active and stop it
                 if systemctl is-active --quiet firewalld; then
                     echo "Stopping firewalld..."
@@ -104,21 +96,13 @@ main_menu() {
                 sudo systemctl start ufw
                 sudo systemctl enable ufw
                 sudo systemctl restart ufw
-
                 sudo ufw allow 22/tcp
                 sudo ufw allow 80/tcp
                 sudo ufw allow 443/tcp
                 sudo ufw allow 3389/tcp
                 sudo ufw allow 3389/udp
-
-                sudo cp "$UFW_RULES" "$UFW_RULES.bak"
-                echo "Adding ICMP (ping) allow rule to UFW..."
-                sudo sed -i '/# ok icmp codes for INPUT/i -A ufw-before-input -p icmp --icmp-type echo-request -j ACCEPT' "$UFW_RULES"
-
                 sudo ufw enable
                 sudo ufw reload
-                # sudo ufw status verbose
-                # sudo systemctl status ufw
             ;;
             2) manage_firewall status ;;
             3) list_ports ;;

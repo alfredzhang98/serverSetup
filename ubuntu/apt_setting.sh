@@ -7,6 +7,30 @@ function user_exists() {
   getent passwd "$username" >/dev/null 2>&1
 }
 
+function add_host_keys(){
+    host_keys=(
+    "/etc/ssh/ssh_host_rsa_key"
+    "/etc/ssh/ssh_host_dsa_key"
+    "/etc/ssh/ssh_host_ecdsa_key"
+    "/etc/ssh/ssh_host_ed25519_key"
+  )
+  # Check if the sshd_config file exists
+  if [[ -f "$SSH_CONFIG_FILE" ]]; then
+    # Check if the host key entries already exist in the sshd_config file
+    if grep -Fxq "HostKey ${host_keys[0]}" $SSH_CONFIG_FILE; then
+      echo "HostKey entries already exist in sshd_config. No changes needed."
+    else
+      # Append the host key entries to the sshd_config file
+      for key_file in "${host_keys[@]}"; do
+        echo "HostKey $key_file" | sudo tee -a $SSH_CONFIG_FILE > /dev/null
+      done
+      echo "HostKey entries added to sshd_config."
+    fi
+  else
+    echo "sshd_config file not found."
+  fi
+}
+
 function enable_and_start_ssh() {
   sudo systemctl enable sshd.service
   sudo systemctl start sshd.service
@@ -62,8 +86,8 @@ main_menu() {
     while true; do
         echo -e "\033[32m ******** \033[0m"
         echo -e "\033[32m Please select an operation to perform: \033[0m"
-        echo -e "\033[32m 1. update apt (facing kdump-tools configs and restart new packages configs)\033[0m"
-        echo -e "\033[32m 2. set sudo passwd\033[0m"
+        echo -e "\033[32m 1. set sudo passwd\033[0m"
+        echo -e "\033[32m 2. update apt (facing kdump-tools configs and restart new packages configs)\033[0m"
         echo -e "\033[32m 3. initial apt packages install(once is ok)\033[0m"
         echo -e "\033[32m 4. install Baota panel\033[0m"
         echo -e "\033[32m 5. install Baota safety monitoring\033[0m"
@@ -76,7 +100,9 @@ main_menu() {
         read -p "Enter the corresponding number for the operation: " choice
 
         case $choice in
-        1)
+        1)  sudo passwd root
+            ;;
+        2)
             # 系统更新
             echo "This shell should run twice to check update and upgrade finish"
             read -p "Press Enter to continue..."
@@ -86,27 +112,47 @@ main_menu() {
             sudo apt-get upgrade -y
             echo "Success updating and upgrading system packages..."
             ;;
-        2)  sudo passwd root
-            ;;
         3)
             # ssh
             echo "Configuring SSH..."
             sudo apt-get install ssh -y
-
             # firewall
             echo "Configuring Firewall..."
             sudo apt-get install -y firewalld
-            sudo systemctl stop firewalld
-
+            # fail2Ban
+            echo "Installing Fail2Ban..."
+            sudo apt-get install -y fail2ban
+            sudo systemctl disable fail2ban
+            sudo systemctl stop fail2ban
+            if systemctl is-active --quiet ufw; then
+                echo "Stopping ufw..."
+                sudo systemctl stop ufw
+                sudo ufw disable
+            else
+                echo "ufw is not running."
+            fi
+            # default use the firewalld
+            sudo systemctl start firewalld
+            sudo systemctl enable firewalld
+            sudo firewall-cmd --zone=public --add-service=ssh --permanent
+            sudo firewall-cmd --zone=public --add-service=http --permanent
+            sudo firewall-cmd --zone=public --add-service=https --permanent
+            sudo firewall-cmd --zone=public --add-port=22/tcp --permanent
+            sudo firewall-cmd --zone=public --add-port=80/tcp --permanent
+            sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
+            sudo firewall-cmd --zone=public --add-port=3389/udp --permanent
+            sudo firewall-cmd --zone=public --add-port=3389/tcp --permanent
+            sudo firewall-cmd --reload
+            sudo systemctl restart firewalld
             # ssh
             enable_and_start_ssh
+            add_host_keys
             modify_ssh_config "PermitRootLogin" "prohibit-password" "yes"
             modify_ssh_config "PubkeyAuthentication" "yes" "yes"
-            modify_ssh_config "PasswordAuthentication" "no" "yes"
+            modify_ssh_config "PasswordAuthentication" "yes" "yes"
             modify_ssh_config "PermitEmptyPasswords" "no" "no"
             set_user_permission "root"
             set_user_permission "ubuntu"
-
             echo "Initial setup completed."
             ;;
         4)
