@@ -71,7 +71,7 @@ function set_user_permission() {
             echo "User $username added to AllowUsers in SSH config."
         fi
     else
-        echo "AllowUsers $username" >> "$SSH_CONFIG_FILE"
+        echo -e "\nAllowUsers $username" >> "$SSH_CONFIG_FILE"
         echo "AllowUsers with user $username added to SSH config."
     fi
     systemctl restart sshd.service
@@ -141,6 +141,7 @@ main_menu() {
             modify_ssh_config "PasswordAuthentication" "yes" "yes"
             modify_ssh_config "PermitEmptyPasswords" "no" "no"
             set_user_permission "root"
+            systemctl restart sshd.service
             echo "Initial setup completed."
             ;;
         3)

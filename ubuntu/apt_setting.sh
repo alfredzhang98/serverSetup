@@ -56,16 +56,13 @@ function modify_ssh_config() {
 
 function set_user_permission() {
     local username="$1"
-
     if [ -z "$username" ]; then
         read -p "Enter username: " username
     fi
-
     if ! user_exists "$username"; then
         echo "User $username does not exist."
         return
     fi
-
     if grep -q "^AllowUsers" "$SSH_CONFIG_FILE"; then
         if grep -q "AllowUsers.*$username" "$SSH_CONFIG_FILE"; then
             echo "User $username is already allowed in SSH config."
@@ -74,10 +71,9 @@ function set_user_permission() {
             echo "User $username added to AllowUsers in SSH config."
         fi
     else
-        echo "AllowUsers $username" | sudo tee -a "$SSH_CONFIG_FILE"
+        echo -e "\nAllowUsers $username" | sudo tee -a "$SSH_CONFIG_FILE"
         echo "AllowUsers with user $username added to SSH config."
     fi
-
     sudo systemctl restart sshd.service
 }
 
@@ -153,6 +149,7 @@ main_menu() {
             modify_ssh_config "PermitEmptyPasswords" "no" "no"
             set_user_permission "root"
             set_user_permission "ubuntu"
+            systemctl restart sshd.service
             echo "Initial setup completed."
             ;;
         4)
