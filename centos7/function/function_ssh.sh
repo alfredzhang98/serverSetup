@@ -333,6 +333,7 @@ function generate_ssh_keys() {
   rm /tmp/tempkey.pub
   rm /tmp/tempkey
   systemctl restart sshd.service
+  echo "Give your private key permission by: chmod 600 /Your_Path/key.pem"
   read -p "Please keep your key carefully. Press Enter to continue..."
   clear
 }
