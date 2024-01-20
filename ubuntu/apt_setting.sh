@@ -1,82 +1,5 @@
 #!/bin/bash
 
-SSH_CONFIG_FILE="/etc/ssh/sshd_config"
-
-function user_exists() {
-  local username=$1
-  getent passwd "$username" >/dev/null 2>&1
-}
-
-function add_host_keys(){
-    host_keys=(
-    "/etc/ssh/ssh_host_rsa_key"
-    "/etc/ssh/ssh_host_dsa_key"
-    "/etc/ssh/ssh_host_ecdsa_key"
-    "/etc/ssh/ssh_host_ed25519_key"
-  )
-  # Check if the sshd_config file exists
-  if [[ -f "$SSH_CONFIG_FILE" ]]; then
-    # Check if the host key entries already exist in the sshd_config file
-    if grep -Fxq "HostKey ${host_keys[0]}" $SSH_CONFIG_FILE; then
-      echo "HostKey entries already exist in sshd_config. No changes needed."
-    else
-      # Append the host key entries to the sshd_config file
-      for key_file in "${host_keys[@]}"; do
-        echo "HostKey $key_file" | sudo tee -a $SSH_CONFIG_FILE > /dev/null
-      done
-      echo "HostKey entries added to sshd_config."
-    fi
-  else
-    echo "sshd_config file not found."
-  fi
-}
-
-function enable_and_start_ssh() {
-  sudo systemctl enable sshd.service
-  sudo systemctl start sshd.service
-}
-
-function modify_ssh_config() {
-    local config_name="$1"
-    local default_choice="$2"
-    local choice="$3"
-    if grep -q "^#$config_name" "$SSH_CONFIG_FILE"; then
-        sudo sed -i "s/^#$config_name.*/#$config_name $default_choice/" "$SSH_CONFIG_FILE"
-        if ! grep -q "^$config_name" "$SSH_CONFIG_FILE"; then
-            sudo sed -i "/^#$config_name/a $config_name $choice" "$SSH_CONFIG_FILE"
-        fi
-    else
-        echo "#$config_name $default_choice" | sudo tee -a "$SSH_CONFIG_FILE"
-        echo "$config_name $choice" | sudo tee -a "$SSH_CONFIG_FILE"
-    fi
-    if grep -q "^$config_name" "$SSH_CONFIG_FILE"; then
-        sudo sed -i "s/^$config_name.*/$config_name $choice/" "$SSH_CONFIG_FILE"
-    fi
-}
-
-function set_user_permission() {
-    local username="$1"
-    if [ -z "$username" ]; then
-        read -p "Enter username: " username
-    fi
-    if ! user_exists "$username"; then
-        echo "User $username does not exist."
-        return
-    fi
-    if grep -q "^AllowUsers" "$SSH_CONFIG_FILE"; then
-        if grep -q "AllowUsers.*$username" "$SSH_CONFIG_FILE"; then
-            echo "User $username is already allowed in SSH config."
-        else
-            sudo sed -i "/^AllowUsers/s/$/ $username/" "$SSH_CONFIG_FILE"
-            echo "User $username added to AllowUsers in SSH config."
-        fi
-    else
-        echo -e "\nAllowUsers $username" | sudo tee -a "$SSH_CONFIG_FILE"
-        echo "AllowUsers with user $username added to SSH config."
-    fi
-    sudo systemctl restart sshd.service
-}
-
 main_menu() {
     echo -e "\033[32m Makesure we have su permission \033[0m"
     while true; do
@@ -110,46 +33,17 @@ main_menu() {
             ;;
         3)
             # ssh
-            echo "Configuring SSH..."
             sudo apt-get install ssh -y
             # firewall
-            echo "Configuring Firewall..."
             sudo apt-get install -y firewalld
             # fail2Ban
-            echo "Installing Fail2Ban..."
             sudo apt-get install -y fail2ban
             sudo systemctl disable fail2ban
             sudo systemctl stop fail2ban
-            if systemctl is-active --quiet ufw; then
-                echo "Stopping ufw..."
-                sudo systemctl stop ufw
-                sudo ufw disable
-            else
-                echo "ufw is not running."
-            fi
-            # default use the firewalld
-            sudo systemctl start firewalld
-            sudo systemctl enable firewalld
-            sudo firewall-cmd --zone=public --add-service=ssh --permanent
-            sudo firewall-cmd --zone=public --add-service=http --permanent
-            sudo firewall-cmd --zone=public --add-service=https --permanent
-            sudo firewall-cmd --zone=public --add-port=22/tcp --permanent
-            sudo firewall-cmd --zone=public --add-port=80/tcp --permanent
-            sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
-            sudo firewall-cmd --zone=public --add-port=3389/udp --permanent
-            sudo firewall-cmd --zone=public --add-port=3389/tcp --permanent
-            sudo firewall-cmd --reload
-            sudo systemctl restart firewalld
-            # ssh
-            enable_and_start_ssh
-            add_host_keys
-            modify_ssh_config "PermitRootLogin" "prohibit-password" "yes"
-            modify_ssh_config "PubkeyAuthentication" "yes" "yes"
-            modify_ssh_config "PasswordAuthentication" "yes" "yes"
-            modify_ssh_config "PermitEmptyPasswords" "no" "no"
-            set_user_permission "root"
-            set_user_permission "ubuntu"
-            systemctl restart sshd.service
+            # default firewalld config
+            init_firewall
+            # default ssh config
+            init_ssh
             echo "Initial setup completed."
             ;;
         4)
@@ -182,4 +76,6 @@ main_menu() {
     done
 }
 
+source ./function/function_ssh.sh
+source ./function/function_firewall.sh
 main_menu

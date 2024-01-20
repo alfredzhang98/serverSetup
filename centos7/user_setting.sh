@@ -22,15 +22,15 @@ function add_group() {
   view_group
 }
 
-# Function to delete a group
+# Function to delete group
 function delete_group() {
   read -p "Enter group name: " groupname
   if [ -n "$groupname" ]; then
-    if ! getent group "$groupname" >/dev/null; then
-      echo "Group $groupname does not exist."
-    else
+    if getent group "$groupname" >/dev/null; then
       groupdel "$groupname"
       echo "Group $groupname deleted."
+    else
+      echo "Group $groupname does not exist."
     fi
   else
     echo "Invalid input!"
@@ -93,22 +93,9 @@ function add_user() {
     useradd -g "$group" -m "$username"
     echo "$username:$password1" | chpasswd
   fi
-
-  if ! grep -q "^AllowUsers $username" /etc/ssh/sshd_config; then
-    echo "AllowUsers $username" >> /etc/ssh/sshd_config
-    systemctl restart sshd.service
-    systemctl enable sshd.service
-  fi
-
-  if [ ! -d "/home/$username/.ssh" ]; then
-    mkdir -p "/home/$username/.ssh"
-  fi
-
-  cat /root/.ssh/authorized_keys > /home/$username/.ssh/authorized_keys
-  chown "$username:$group" "/home/$username/.ssh"
-  chmod 700 "/home/$username/.ssh"
-  chown "$username:$group" "/home/$username/.ssh/authorized_keys"
-  chmod 600 "/home/$username/.ssh/authorized_keys"
+  set_user_permission "$username"
+  user_path_check "$username"
+  update_user_authorized_keys "$username"
 }
 
 
@@ -231,8 +218,8 @@ function group_setting_menu() {
     3) delete_group ;;
     0) break ;;
     *) echo "Invalid selection." ;;
-    read -p "Press Enter to continue..."
     esac
+    read -p "Press Enter to continue..."
   done
 }
 
@@ -287,4 +274,6 @@ main_menu() {
     read -p "Press Enter to continue..."
   done
 }
+
+source ./function/function_ssh.sh
 main_menu

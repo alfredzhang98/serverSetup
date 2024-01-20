@@ -28,10 +28,8 @@ main_menu() {
             ;;
         3)
             # ssh
-            echo "Configuring SSH..."
             yum -y install ssh
             # yum-cron
-            echo "Installing and configuring yum-cron for automatic updates..."
             yum -y install yum-cron
             sed -i 's/apply_updates = no/apply_updates = yes/' /etc/yum/yum-cron.conf
             systemctl start yum-cron
@@ -39,32 +37,13 @@ main_menu() {
             # firewall
             yum -y install firewalld
             # fail2Ban
-            echo "Installing Fail2Ban..."
             yum -y install fail2ban
             systemctl disable fail2ban
             systemctl stop fail2ban
-            # default use the firewalld
-            sudo systemctl start firewalld
-            sudo systemctl enable firewalld
-            sudo firewall-cmd --zone=public --add-service=ssh --permanent
-            sudo firewall-cmd --zone=public --add-service=http --permanent
-            sudo firewall-cmd --zone=public --add-service=https --permanent
-            sudo firewall-cmd --zone=public --add-port=22/tcp --permanent
-            sudo firewall-cmd --zone=public --add-port=80/tcp --permanent
-            sudo firewall-cmd --zone=public --add-port=443/tcp --permanent
-            sudo firewall-cmd --zone=public --add-port=3389/udp --permanent
-            sudo firewall-cmd --zone=public --add-port=3389/tcp --permanent
-            sudo firewall-cmd --reload
-            sudo systemctl restart firewalld
-            # ssh
-            enable_and_start_ssh
-            add_host_keys
-            modify_ssh_config "PermitRootLogin" "prohibit-password" "yes"
-            modify_ssh_config "PubkeyAuthentication" "yes" "yes"
-            modify_ssh_config "PasswordAuthentication" "yes" "yes"
-            modify_ssh_config "PermitEmptyPasswords" "no" "no"
-            set_user_permission "root"
-            systemctl restart sshd.service
+            # default firewalld config
+            init_firewall
+            # default ssh config
+            init_ssh
             echo "Initial setup completed."
             ;;
         3)
@@ -97,5 +76,6 @@ main_menu() {
     done
 }
 
-source function_ssh.sh
+source ./function/function_ssh.sh
+source ./function/function_firewall.sh
 main_menu

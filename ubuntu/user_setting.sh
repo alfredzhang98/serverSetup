@@ -93,22 +93,9 @@ function add_user() {
     sudo useradd -g "$group" -m "$username"
     echo "$username:$password1" | sudo chpasswd
   fi
-
-  if ! grep -q "^AllowUsers $username" /etc/ssh/sshd_config; then
-    echo "AllowUsers $username" >> /etc/ssh/sshd_config
-    sudo systemctl restart ssh.service
-    sudo systemctl enable ssh.service
-  fi
-
-  if [ ! -d "/home/$username/.ssh" ]; then
-    sudo mkdir -p "/home/$username/.ssh"
-  fi
-
-  cat /root/.ssh/authorized_keys > /home/$username/.ssh/authorized_keys
-  sudo chown "$username:$group" "/home/$username/.ssh"
-  sudo chmod 700 "/home/$username/.ssh"
-  sudo chown "$username:$group" "/home/$username/.ssh/authorized_keys"
-  sudo chmod 600 "/home/$username/.ssh/authorized_keys"
+  set_user_permission "$username"
+  user_path_check "$username"
+  update_user_authorized_keys "$username"
 }
 
 
@@ -288,4 +275,6 @@ main_menu() {
     read -p "Press Enter to continue..."
   done
 }
+
+source ./function/function_ssh.sh
 main_menu
