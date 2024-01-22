@@ -76,6 +76,12 @@ main_menu() {
     done
 }
 
+if [[ $EUID -eq 0 ]]; then
+    echo "The current user is root"
+else
+    echo "The current user is not root"
+    exit 1
+fi
 source ./function/function_ssh.sh
 source ./function/function_firewall.sh
 main_menu

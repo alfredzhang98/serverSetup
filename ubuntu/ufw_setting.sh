@@ -119,4 +119,10 @@ main_menu() {
     done
 }
 
+if [[ $EUID -eq 0 ]]; then
+    echo "The current user is root"
+else
+    echo "The current user is not root"
+    exit 1
+fi
 main_menu
