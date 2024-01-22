@@ -328,7 +328,7 @@ function generate_ssh_keys() {
   fi
   ssh-keygen -t rsa -b 4096 -N '' -f /tmp/tempkey
   public_key=$(cat /tmp/tempkey.pub)
-  echo "$public_key" >> /root/.ssh/authorized_keys
+  echo "$public_key" | sudo tee -a " /root/.ssh/authorized_keys"
   echo "Generated private key:"
   cat /tmp/tempkey
   sudo rm /tmp/tempkey.pub
