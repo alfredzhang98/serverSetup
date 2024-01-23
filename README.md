@@ -12,5 +12,6 @@ chmod +x xxx.sh
 ```
 
 centos = 7
+
 ubuntu > 18.04
 
