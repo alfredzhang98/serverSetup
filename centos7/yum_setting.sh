@@ -20,8 +20,8 @@ main_menu() {
         case $choice in
         1)  sudo passwd root
             ;;
-        2)
-            # 系统更新
+        2)            
+            # system update
             echo "Updating system packages..."
             yum -y update
             echo "Success updating system packages"

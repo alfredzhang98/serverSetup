@@ -20,17 +20,17 @@ if [[ $EUID -ne 0 ]]; then
     esac
 fi
 
-# 加载 function_ssh.sh 文件
-FUNCTION_SSH="./function/function_ssh.sh"
-if [[ ! -f "$FUNCTION_SSH" ]]; then
-    echo -e "${RED}Error: function_ssh.sh not found!${RESET}"
+# 加载 function_sshd.sh 文件
+FUNCTION_SSHD="./function/function_sshd.sh"
+if [[ ! -f "$FUNCTION_SSHD" ]]; then
+    echo -e "${RED}Error: function_sshd.sh not found!${RESET}"
     read -rp "Do you want to continue without it? (y/N): " choice
     case $choice in
-        [Yy]* ) echo -e "${YELLOW}Continuing without function_ssh.sh...${RESET}" ;;
+        [Yy]* ) echo -e "${YELLOW}Continuing without function_sshd.sh...${RESET}" ;;
         * ) echo "Exiting script."; exit 1 ;;
     esac
 else
-    source "$FUNCTION_SSH"
+    source "$FUNCTION_SSHD"
 fi
 
 # 主菜单函数
@@ -70,9 +70,9 @@ main_menu() {
       7) backup_ssh_config ;;
       8) restore_ssh_config ;;
       10) reinstall_ssh ;;
-      11) sudo systemctl status ssh.service || echo -e "${RED}Failed to check SSH service status.${RESET}" ;;
+      11) sudo systemctl status sshd.service || echo -e "${RED}Failed to check SSH service status.${RESET}" ;;
       12) _enable_and_start_ssh ;;
-      13) sudo systemctl restart ssh.service ;;
+      13) sudo systemctl restart sshd.service ;;
       20) edit_root_authorized_keys ;;
       21) reset_root_authorized_keys ;;
       22) 

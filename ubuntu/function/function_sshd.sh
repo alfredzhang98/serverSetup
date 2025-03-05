@@ -16,8 +16,8 @@ function _confirm_operation() {
 }
 
 function _enable_and_start_ssh() {
-  sudo systemctl enable ssh.service
-  sudo systemctl start ssh.service
+  sudo systemctl enable sshd.service
+  sudo systemctl start sshd.service
 }
 
 function _add_host_keys() {
@@ -88,7 +88,7 @@ function change_ssh_port() {
           echo "Port $new_port" | sudo tee -a "$SSH_CONFIG_FILE" > /dev/null
       fi
       echo "SSH port changed to $new_port"
-      sudo systemctl restart ssh.service
+      sudo systemctl restart sshd.service
   else
       echo "Invalid port. Please enter a number between 1 and 65535."
   fi
@@ -110,7 +110,7 @@ function restore_ssh_config() {
   if [ -f "$backup_file" ]; then
       sudo cp "$backup_file" "$SSH_CONFIG_FILE"
       echo "Configuration restored."
-      sudo systemctl restart ssh.service
+      sudo systemctl restart sshd.service
   else
       echo "Backup file not found."
   fi
@@ -145,7 +145,7 @@ function set_user_permission() {
   else
       echo "AllowUsers $username" | sudo tee -a "$SSH_CONFIG_FILE" > /dev/null
   fi
-  sudo systemctl restart ssh.service
+  sudo systemctl restart sshd.service
 }
 
 function root_path_check() {
@@ -167,7 +167,7 @@ function reset_root_authorized_keys() {
   sudo touch /root/.ssh/authorized_keys
   sudo chmod 600 /root/.ssh/authorized_keys
   echo "authorized_keys file reset."
-  sudo systemctl restart ssh.service
+  sudo systemctl restart sshd.service
 }
 
 function generate_ssh_keys() {
@@ -182,7 +182,7 @@ function generate_ssh_keys() {
   sudo ssh-keygen -t rsa -b 4096 -N '' -f "$key_file"
   sudo chmod 600 "$key_file" "$key_file.pub"
   cat "$key_file.pub" | sudo tee -a /root/.ssh/authorized_keys >/dev/null
-  sudo systemctl restart ssh.service
+  sudo systemctl restart sshd.service
 
   echo "SSH key generated at $key_file. Keep it safe!"
 }

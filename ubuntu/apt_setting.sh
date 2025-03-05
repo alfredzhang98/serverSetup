@@ -22,7 +22,15 @@ main_menu() {
         1)  sudo passwd root
             ;;
         2)
-            # 系统更新
+            echo "Checking for unconfigured packages..."
+            if dpkg -l | grep '^iU' >/dev/null 2>&1; then
+                echo "Unconfigured packages found, running dpkg --configure -a..."
+                sudo dpkg --configure -a
+            else
+                echo "No unconfigured packages found, skipping dpkg configuration."
+            fi
+            sudo dpkg --configure -a
+            # system update and upgrade
             echo "This shell should run twice to check update and upgrade finish"
             read -p "Press Enter to continue..."
             echo "Updating system packages..."

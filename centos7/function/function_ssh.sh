@@ -16,40 +16,35 @@ function _confirm_operation() {
 }
 
 function _enable_and_start_ssh() {
-  systemctl enable sshd.service
-  systemctl start sshd.service
+  sudo systemctl enable ssh.service
+  sudo systemctl start ssh.service
 }
 
-function _add_host_keys(){
-    host_keys=(
+function _add_host_keys() {
+  local host_keys=(
     "/etc/ssh/ssh_host_rsa_key"
     "/etc/ssh/ssh_host_dsa_key"
     "/etc/ssh/ssh_host_ecdsa_key"
     "/etc/ssh/ssh_host_ed25519_key"
   )
-  # Check if the sshd_config file exists
+
   if [[ -f "$SSH_CONFIG_FILE" ]]; then
-    # Check if the host key entries already exist in the sshd_config file
-    if grep -Fxq "HostKey ${host_keys[0]}" $SSH_CONFIG_FILE; then
-      echo "HostKey entries already exist in sshd_config. No changes needed."
-    else
-      # Append the host key entries to the sshd_config file
-      for key_file in "${host_keys[@]}"; do
-        echo "HostKey $key_file" | sudo tee -a $SSH_CONFIG_FILE > /dev/null
-      done
-      echo "HostKey entries added to sshd_config."
-    fi
+    for key_file in "${host_keys[@]}"; do
+      if ! grep -q "^HostKey $key_file" "$SSH_CONFIG_FILE"; then
+        echo "HostKey $key_file" | sudo tee -a "$SSH_CONFIG_FILE" > /dev/null
+      fi
+    done
   else
-    echo "sshd_config file not found."
+    echo "Error: $SSH_CONFIG_FILE not found."
   fi
 }
 
-# Function to display a specific configuration
 function _display_config() {
-  local config_key=$1
-  local config_value=$(grep "^$config_key" "$SSH_CONFIG_FILE" | tail -1 | awk '{print $2}')
+  local config_key="$1"
+  local config_value
+  config_value=$(grep -E "^[[:space:]]*#?[[:space:]]*$config_key[[:space:]]+" "$SSH_CONFIG_FILE" | tail -1 | awk '{print $2}')
   if [ -z "$config_value" ]; then
-    config_value="Not Set/Commented Out"
+      config_value="Not Set/Commented Out"
   fi
   echo "$config_key: $config_value"
 }
@@ -57,141 +52,65 @@ function _display_config() {
 function init_ssh() {
   _enable_and_start_ssh
   _add_host_keys
-  modify_ssh_config "PermitRootLogin" "prohibit-password" "yes"
-  modify_ssh_config "PubkeyAuthentication" "yes" "yes"
-  modify_ssh_config "PasswordAuthentication" "yes" "yes"
-  modify_ssh_config "PermitEmptyPasswords" "no" "no"
+  modify_ssh_config "PermitRootLogin" "prohibit-password"
+  modify_ssh_config "PubkeyAuthentication" "yes"
+  modify_ssh_config "PasswordAuthentication" "yes"
+  modify_ssh_config "PermitEmptyPasswords" "no"
   set_user_permission "root"
 }
 
-# Function to display key SSH configurations
 function view_ssh_config() {
   echo "SSH Settings:"
-  # List of key configurations to display
-  _display_config "Port"
-  _display_config "PermitRootLogin"
-  _display_config "PasswordAuthentication"
-  _display_config "PubkeyAuthentication"
-  _display_config "PermitEmptyPasswords"
-
-  _display_config "MaxAuthTries"
-  _display_config "ClientAliveCountMax"
-  _display_config "ClientAliveInterval"
-
-  # Determines whether TCP connection keep-alive is enabled. It is recommended that this be set to "yes" to avoid connection timeouts.
-  _display_config "TCPKeepAlive"
-  _display_config "AllowTcpForwarding"
-  # Determines if X11 forwarding is allowed. If you do not need to run graphical applications in an SSH session, it is recommended that this be set to "no".
-  _display_config "X11Forwarding"
-
-  # Specifies the logging level. The default is "INFO", but in production environments it can be set to a higher level (such as "VERBOSE" or "DEBUG") for detailed logging.
-  _display_config "LogLevel"
-  # Determines whether Pluggable Authentication Modules (PAM) are used for authentication. It is recommended that this be set to yes to provide advanced authentication features
-  _display_config "UsePAM"
-  _display_config "AllowUsers"
+  for key in Port PermitRootLogin PasswordAuthentication PubkeyAuthentication PermitEmptyPasswords MaxAuthTries ClientAliveCountMax ClientAliveInterval TCPKeepAlive AllowTcpForwarding X11Forwarding LogLevel UsePAM AllowUsers; do
+    _display_config "$key"
+  done
 }
 
-function vim_change_sshd_config() {
-  vim "$SSH_CONFIG_FILE"
-  systemctl restart sshd.service
+# 优化后的 modify_ssh_config 函数：支持更灵活的匹配模式（允许多余空格和注释符号）
+function modify_ssh_config() {
+  local config_name="$1"
+  local choice="$2"
+  local pattern="^[[:space:]]*#?[[:space:]]*$config_name[[:space:]]+.*"
+  if grep -Eq "$pattern" "$SSH_CONFIG_FILE"; then
+      sudo sed -i -E "s|$pattern|$config_name $choice|" "$SSH_CONFIG_FILE"
+  else
+      echo "$config_name $choice" | sudo tee -a "$SSH_CONFIG_FILE" > /dev/null
+  fi
 }
 
-# Function to change SSH port
+# 优化后的 change_ssh_port 函数：如果 Port 行不存在则追加配置
 function change_ssh_port() {
   read -p "Enter new SSH port: " new_port
-
-  # Check that the port number is in the valid range
   if [[ "$new_port" =~ ^[0-9]+$ ]] && [ "$new_port" -ge 1 ] && [ "$new_port" -le 65535 ]; then
-      # Find the existing Port configuration and replace it with the new port number
-      if grep -q "^Port " "$SSH_CONFIG_FILE"; then
-          sed -i "s/^Port .*/Port $new_port/" "$SSH_CONFIG_FILE"
+      if grep -Eq "^[[:space:]]*#?[[:space:]]*Port[[:space:]]+" "$SSH_CONFIG_FILE"; then
+          sudo sed -i -E "s|^[[:space:]]*#?[[:space:]]*Port[[:space:]]+.*|Port $new_port|" "$SSH_CONFIG_FILE"
       else
-          echo "Port $new_port" >> "$SSH_CONFIG_FILE"
+          echo "Port $new_port" | sudo tee -a "$SSH_CONFIG_FILE" > /dev/null
       fi
       echo "SSH port changed to $new_port"
-      systemctl restart sshd.service
+      sudo systemctl restart ssh.service
   else
       echo "Invalid port. Please enter a number between 1 and 65535."
   fi
 }
 
-function modify_ssh_config() {
-  local config_name="$1"
-  local default_choice="$2"
-  local choice="$3"
-  if grep -q "^#$config_name" "$SSH_CONFIG_FILE"; then
-      sed -i "s/^#$config_name.*/#$config_name $default_choice/" "$SSH_CONFIG_FILE"
-      if ! grep -q "^$config_name" "$SSH_CONFIG_FILE"; then
-          sed -i "/^#$config_name/a $config_name $choice" "$SSH_CONFIG_FILE"
-      fi
-  else
-      echo "#$config_name $default_choice" >> "$SSH_CONFIG_FILE"
-      echo "$config_name $choice" >> "$SSH_CONFIG_FILE"
-  fi
-  if grep -q "^$config_name" "$SSH_CONFIG_FILE"; then
-      sed -i "s/^$config_name.*/$config_name $choice/" "$SSH_CONFIG_FILE"
-  fi
-}
-
-# Function to toggle PermitRootLogin
-function toggle_permit_root_login() {
-  echo "Current PermitRootLogin setting:"
-  grep "^PermitRootLogin" "$SSH_CONFIG_FILE"
-  
-  read -p "Set PermitRootLogin (yes/no/prohibit-password): " choice
-  if [[ "$choice" == "yes" || "$choice" == "no" || "$choice" == "prohibit-password" ]]; then
-    modify_ssh_config "PermitRootLogin" "prohibit-password" $choice
-    echo "PermitRootLogin set to $choice"
-  else
-    echo "Invalid input. Please enter 'yes', 'no', or 'prohibit-password'."
-  fi
-  systemctl restart sshd.service
-}
-
-# Toggle Public Key Authentication
-function toggle_pubkey_authentication() {
-  read -p "Enable Pubkey Authentication? (yes/no): " choice
-  if [[ "$choice" == "yes" || "$choice" == "no" ]]; then
-    modify_ssh_config "PubkeyAuthentication" "yes" $choice
-    echo "Pubkey Authentication set to $choice"
-  else
-    echo "Invalid input. Please enter 'yes' or 'no'."
-  fi
-  systemctl restart sshd.service
-}
-
-# Function to enable or disable password authentication
-function toggle_password_authentication() {
-  read -p "Enable Password Authentication? (yes/no): " choice
-  if [[ "$choice" == "yes" || "$choice" == "no" ]]; then
-    modify_ssh_config "PasswordAuthentication" "no" $choice
-    echo "Password Authentication set to $choice"
-  else
-    echo "Invalid input. Please enter 'yes' or 'no'."
-  fi
-  systemctl restart sshd.service
-}
-
-# Function to backup the SSH configuration file
 function backup_ssh_config() {
   local backup_file="$SSH_CONFIG_FILE-$(date +%F-%H%M%S)"
-  if cp "$SSH_CONFIG_FILE" "$backup_file"; then
+  if sudo cp "$SSH_CONFIG_FILE" "$backup_file"; then
       echo "Backup created: $backup_file"
   else
-      echo "Error: Failed to create backup of SSH config."
-      return 1
+      echo "Error: Failed to create backup."
   fi
 }
 
-# Function to restore the SSH configuration file from a backup
 function restore_ssh_config() {
   echo "Available backups:"
-  ls -l $SSH_CONFIG_FILE-*
-  read -p "Enter the backup file to restore (full path): " backup_file
+  ls -l "$SSH_CONFIG_FILE"-*
+  read -p "Enter backup file to restore: " backup_file
   if [ -f "$backup_file" ]; then
-      cp "$backup_file" "$SSH_CONFIG_FILE"
-      echo "Configuration restored from $backup_file"
-      systemctl restart sshd.service
+      sudo cp "$backup_file" "$SSH_CONFIG_FILE"
+      echo "Configuration restored."
+      sudo systemctl restart ssh.service
   else
       echo "Backup file not found."
   fi
@@ -200,140 +119,92 @@ function restore_ssh_config() {
 function reinstall_ssh() {
   echo "Reinstalling SSH..."
   _confirm_operation || return
-  if yum remove -y openssh-server && yum install -y openssh-server; then
+  if sudo yum remove -y openssh-server && sudo yum install -y openssh-server; then
     init_ssh
-    echo "SSH reinstalled and service restarted."
+    echo "SSH reinstalled and restarted."
   else
-    echo "Error occurred during SSH reinstallation."
+    echo "Error reinstalling SSH."
   fi
 }
 
-function root_path_check() {
-  if [ ! -d "/root/.ssh" ]; then
-      mkdir -p /root/.ssh
-      chmod 700 /root/.ssh
-  fi
-  if [ ! -f "/root/.ssh/authorized_keys" ]; then
-      touch /root/.ssh/authorized_keys
-      chmod 600 /root/.ssh/authorized_keys
-  fi
-}
-
-function edit_root_authorized_keys() {
-  root_path_check
-  vim /root/.ssh/authorized_keys
-}
-
-function reset_root_authorized_keys() {
-  if _confirm_operation; then
-      root_path_check
-      if [ -f "/root/.ssh/authorized_keys" ]; then
-          rm /root/.ssh/authorized_keys
-      fi
-      mkdir -p /root/.ssh
-      touch /root/.ssh/authorized_keys
-      chmod 700 /root/.ssh
-      chmod 600 /root/.ssh/authorized_keys
-      echo "authorized_keys file reset and permissions set, please put in your public keys in this file"
-      systemctl restart sshd.service
-  else
-      echo "Operation cancelled."
-  fi
-}
-
+# 优化后的 set_user_permission 函数：
+# 1. 如果已存在 AllowUsers 且已包含该用户则不做修改
+# 2. 如果存在 AllowUsers 但不包含该用户，则将用户添加到第一行 AllowUsers 中
+# 3. 如果没有 AllowUsers 行，则追加新的 AllowUsers 配置
 function set_user_permission() {
   local username="$1"
-  if [ -z "$username" ]; then
-      read -p "Enter username: " username
-  fi
   if ! _user_exists "$username"; then
       echo "User $username does not exist."
       return
   fi
-  if grep -q "^AllowUsers" "$SSH_CONFIG_FILE"; then
-      if grep -q "AllowUsers.*$username" "$SSH_CONFIG_FILE"; then
-          echo "User $username is already allowed in SSH config."
-      else
-          sed -i "/^AllowUsers/s/$/ $username/" "$SSH_CONFIG_FILE"
-          echo "User $username added to AllowUsers in SSH config."
-      fi
+  if grep -Eq "^[[:space:]]*AllowUsers.*\b$username\b" "$SSH_CONFIG_FILE"; then
+      echo "User $username is already allowed."
+  elif grep -Eq "^[[:space:]]*AllowUsers" "$SSH_CONFIG_FILE"; then
+      sudo sed -i -E "0,/^[[:space:]]*AllowUsers/ s//& $username/" "$SSH_CONFIG_FILE"
   else
-      echo -e "\nAllowUsers $username" >> "$SSH_CONFIG_FILE"
-      echo "AllowUsers with user $username added to SSH config."
+      echo "AllowUsers $username" | sudo tee -a "$SSH_CONFIG_FILE" > /dev/null
   fi
-  systemctl restart sshd.service
+  sudo systemctl restart ssh.service
 }
 
-function get_user_group() {
-  local username="$1"
-  group=$(id -gn "$username")
-  echo "$group"
+function root_path_check() {
+  sudo mkdir -p /root/.ssh
+  sudo chmod 700 /root/.ssh
+  sudo touch /root/.ssh/authorized_keys
+  sudo chmod 600 /root/.ssh/authorized_keys
 }
 
-function user_path_check() {
-  local username="$1"
-  if [ -z "$username" ]; then
-      read -p "Enter username: " username
+function edit_root_authorized_keys() {
+  root_path_check
+  sudo vim /root/.ssh/authorized_keys
+}
+
+function reset_root_authorized_keys() {
+  _confirm_operation || return
+  root_path_check
+  sudo rm /root/.ssh/authorized_keys
+  sudo touch /root/.ssh/authorized_keys
+  sudo chmod 600 /root/.ssh/authorized_keys
+  echo "authorized_keys file reset."
+  sudo systemctl restart ssh.service
+}
+
+function generate_ssh_keys() {
+  local key_file="/root/.ssh/id_rsa"
+  root_path_check
+
+  if [ -f "$key_file" ]; then
+    echo "SSH key already exists at $key_file"
+    return
   fi
-  group=$(get_user_group "$username")
-  if [ ! -d "/home/$username/.ssh" ]; then
-      mkdir -p /home/$username/.ssh
-      chown "$username:$group" "/home/$username/.ssh"
-      chmod 700 /home/$username/.ssh
-  fi
-  if [ ! -f "/home/$username/.ssh/authorized_keys" ]; then
-      touch /home/$username/.ssh/authorized_keys
-      chown "$username:$group" "/home/$username/.ssh/authorized_keys"
-      chmod 600 /home/$username/.ssh/authorized_keys
-  fi
+
+  sudo ssh-keygen -t rsa -b 4096 -N '' -f "$key_file"
+  sudo chmod 600 "$key_file" "$key_file.pub"
+  cat "$key_file.pub" | sudo tee -a /root/.ssh/authorized_keys >/dev/null
+  sudo systemctl restart ssh.service
+
+  echo "SSH key generated at $key_file. Keep it safe!"
 }
 
 function edit_user_authorized_keys() {
   local username="$1"
-  if [ -z "$username" ]; then
-      read -p "Enter username: " username
-  fi
   if ! _user_exists "$username"; then
     echo "User $username does not exist."
     return
   fi
-  user_path_check "$username"
-  vim /home/$username/.ssh/authorized_keys
+  sudo mkdir -p "/home/$username/.ssh"
+  sudo chmod 700 "/home/$username/.ssh"
+  sudo touch "/home/$username/.ssh/authorized_keys"
+  sudo chmod 600 "/home/$username/.ssh/authorized_keys"
+  sudo vim "/home/$username/.ssh/authorized_keys"
 }
 
 function update_user_authorized_keys() {
   local username="$1"
-  if [ -z "$username" ]; then
-      read -p "Enter username: " username
-  fi
-  echo "Users existing authorized_keys files will be overwritten by root one"
-  _confirm_operation || return
   if ! _user_exists "$username"; then
     echo "User $username does not exist."
     return
   fi
-  user_path_check "$username"
-  cat /root/.ssh/authorized_keys > /home/$username/.ssh/authorized_keys
-}
-
-function generate_ssh_keys() {
-  if [ ! -d "/root/.ssh" ]; then
-    mkdir -p /root/.ssh
-    chmod 700 /root/.ssh
-  fi
-  if [ ! -f "/root/.ssh/authorized_keys" ]; then
-    touch /root/.ssh/authorized_keys
-    chmod 600 /root/.ssh/authorized_keys
-  fi
-  ssh-keygen -t rsa -b 4096 -N '' -f /tmp/tempkey
-  public_key=$(cat /tmp/tempkey.pub)
-  echo "$public_key" >> /root/.ssh/authorized_keys
-  echo "Generated private key:"
-  cat /tmp/tempkey
-  rm /tmp/tempkey.pub
-  rm /tmp/tempkey
-  systemctl restart sshd.service
-  echo "Give your private key permission by: chmod 600 /Your_Path/key.pem"
-  read -p "Please keep your key carefully. Press Enter to continue..."
-  clear
+  _confirm_operation || return
+  sudo cat /root/.ssh/authorized_keys > "/home/$username/.ssh/authorized_keys"
 }
