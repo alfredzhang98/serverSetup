@@ -1,5 +1,10 @@
 #!/bin/bash
 
+GREEN="\033[32m"
+RED="\033[31m"
+YELLOW="\033[33m"
+RESET="\033[0m"
+
 UFW_RULES="/etc/ufw/before.rules"
 
 function list_ports() {
@@ -63,23 +68,21 @@ function add_delete_application_rule() {
 }
 
 main_menu() {
-    echo "Initializing firewall setup..."
-    # You can call stop_firewalls function here if you have it
 
     while true; do
-        echo "********"
-        echo "Please select an operation to perform:"
-        echo "1. Initializing firewall setup"
-        echo "2. View firewall status"
-        echo "3. List ports"
-        echo "4. List all available services"
-        echo "5. Start firewall"
-        echo "6. Stop firewall"
-        echo "7. Restart firewall"
-        echo "8. Add/Delete a port rule"
-        echo "9. Add/Delete an application rule"
-        echo "0. Exit"
-        echo "********"
+        echo -e "${GREEN}******** Firewall Configuration Menu ********${RESET}"
+        echo -e "${GREEN} 1.  Initialize Firewall Setup${RESET}"
+        echo -e "${GREEN} 2.  View Firewall Status${RESET}"
+        echo -e "${GREEN} 3.  List Ports${RESET}"
+        echo -e "${GREEN} 4.  List All Available Services${RESET}"
+        echo -e "${GREEN} 5.  Start Firewall${RESET}"
+        echo -e "${GREEN} 6.  Stop Firewall${RESET}"
+        echo -e "${GREEN} 7.  Restart Firewall${RESET}"
+        echo -e "${GREEN} 8.  Add/Delete a Port Rule${RESET}"
+        echo -e "${GREEN} 9.  Add/Delete an Application Rule${RESET}"
+        echo -e "${GREEN}********************************************${RESET}"
+        echo -e "${GREEN} 0.  Exit${RESET}"
+        echo -e "${GREEN}********************************************${RESET}"
 
         read -p "Enter the corresponding number for the operation: " choice
 
@@ -112,17 +115,21 @@ main_menu() {
             7) manage_firewall restart ;;
             8) modify_rule ;;
             9) add_delete_application_rule ;;
-            0) echo "Exiting the script"; exit 1 ;;
+            0) echo "Exiting the script"; break ;;
             *) echo "Invalid selection" ;;
         esac
         read -p "Press Enter to continue..."
     done
 }
 
-if [[ $EUID -eq 0 ]]; then
-    echo "The current user is root"
-else
-    echo "The current user is not root"
-    exit 1
+if [[ $EUID -ne 0 ]]; then
+    echo -e "${RED}[ERROR] This script requires root privileges!${RESET}"
+    echo -e "${YELLOW}Try running: sudo $0${RESET}"
+    read -rp "Do you want to restart with sudo? (y/N): " choice
+    case $choice in
+        [Yy]* ) exec sudo bash "$0";;
+        * ) echo "Exiting script. Please run as root."; exec bash; exit 1;;
+    esac
 fi
+
 main_menu

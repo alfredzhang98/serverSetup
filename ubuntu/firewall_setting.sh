@@ -1,29 +1,33 @@
 #!/bin/bash
 
+GREEN="\033[32m"
+RED="\033[31m"
+YELLOW="\033[33m"
+RESET="\033[0m"
+
 main_menu() {
-    echo -e "\033[32m Makesure we have su permission \033[0m"
     while true; do
-        echo -e "\033[32m ******** \033[0m"
-        echo -e "\033[32m Please select an operation to perform: \033[0m"
-        echo -e "\033[32m 1. Init firewall \033[0m"
-        echo -e "\033[32m 2. View firewall status \033[0m"
-        echo -e "\033[32m 3. List ports in all zones \033[0m"
-        echo -e "\033[32m 4. List all available services \033[0m"
-        echo -e "\033[32m ******** \033[0m"
-        echo -e "\033[32m 6. Restart firewall \033[0m"
-        echo -e "\033[32m 7. Start firewall \033[0m"
-        echo -e "\033[32m 8. Stop firewall \033[0m"
-        echo -e "\033[32m ******** \033[0m"
-        echo -e "\033[32m 10. Add a port to a zone \033[0m"
-        echo -e "\033[32m 11. Add a service \033[0m"
-        echo -e "\033[32m 12. Delete a port from a zone \033[0m"
-        echo -e "\033[32m 13. Delete a service \033[0m"
-        echo -e "\033[32m ******** \033[0m"
-        echo -e "\033[32m 20. Ensable zone drifting \033[0m"
-        echo -e "\033[32m 21. Disable zone drifting \033[0m"
-        echo -e "\033[32m ******** \033[0m"
-        echo -e "\033[32m 0. Exit \033[0m"
-        echo -e "\033[32m ******** \033[0m"
+        echo -e "${GREEN}******** Firewall Configuration Menu ********${RESET}"
+        echo -e "${GREEN} Please select an operation to perform: ${RESET}"
+        echo -e "${GREEN} 1.  Init Firewall${RESET}"
+        echo -e "${GREEN} 2.  View Firewall Status${RESET}"
+        echo -e "${GREEN} 3.  List Ports in All Zones${RESET}"
+        echo -e "${GREEN} 4.  List All Available Services${RESET}"
+        echo -e "${GREEN}*********************************************${RESET}"
+        echo -e "${GREEN} 6.  Restart Firewall${RESET}"
+        echo -e "${GREEN} 7.  Start Firewall${RESET}"
+        echo -e "${GREEN} 8.  Stop Firewall${RESET}"
+        echo -e "${GREEN}*********************************************${RESET}"
+        echo -e "${GREEN}10.  Add a Port to a Zone${RESET}"
+        echo -e "${GREEN}11.  Add a Service${RESET}"
+        echo -e "${GREEN}12.  Delete a Port from a Zone${RESET}"
+        echo -e "${GREEN}13.  Delete a Service${RESET}"
+        echo -e "${GREEN}*********************************************${RESET}"
+        echo -e "${GREEN}20.  Enable Zone Drifting${RESET}"
+        echo -e "${GREEN}21.  Disable Zone Drifting${RESET}"
+        echo -e "${GREEN}*********************************************${RESET}"
+        echo -e "${GREEN} 0.  Exit${RESET}"
+        echo -e "${GREEN}*********************************************${RESET}"
 
         read -p "Enter the corresponding number for the operation: " choice
 
@@ -103,11 +107,26 @@ main_menu() {
     done
 }
 
-if [[ $EUID -eq 0 ]]; then
-    echo "The current user is root"
-else
-    echo "The current user is not root"
-    exit 1
+if [[ $EUID -ne 0 ]]; then
+    echo -e "${RED}[ERROR] This script requires root privileges!${RESET}"
+    echo -e "${YELLOW}Try running: sudo $0${RESET}"
+    read -rp "Do you want to restart with sudo? (y/N): " choice
+    case $choice in
+        [Yy]* ) exec sudo bash "$0";;
+        * ) echo "Exiting script. Please run as root."; exec bash; exit 1;;
+    esac
 fi
-source ./function/function_firewall.sh
+
+FUNCTION_FIREWALL="./function/function_firewall.sh"
+if [[ ! -f "$FUNCTION_FIREWALL" ]]; then
+    echo -e "${RED}Error: function_firewall.sh not found!${RESET}"
+    read -rp "Do you want to continue without it? (y/N): " choice
+    case $choice in
+        [Yy]* ) echo -e "${YELLOW}Continuing without function_firewall.sh...${RESET}" ;;
+        * ) echo "Exiting script."; exec bash; exit 1 ;;
+    esac
+else
+    source "$FUNCTION_FIREWALL"
+fi
+
 main_menu

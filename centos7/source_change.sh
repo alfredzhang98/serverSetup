@@ -1,5 +1,10 @@
 #!/bin/bash
 
+GREEN="\033[32m"
+RED="\033[31m"
+YELLOW="\033[33m"
+RESET="\033[0m"
+
 # YUM 镜像源切换
 function switch_yum_mirror() {
     if [ "$1" == "domestic" ]; then
@@ -44,8 +49,11 @@ function switch_pip_mirror() {
 
 # 主菜单
 function main_menu() {
-    echo "1. Switch to Domestic Mirrors"
-    echo "2. Switch to Default Mirrors"
+    echo -e "${GREEN}******** Mirror Switch Menu *********${RESET}"
+    echo -e "${GREEN} 1.  Switch to Domestic Mirrors${RESET}"
+    echo -e "${GREEN} 2.  Switch to Default Mirrors${RESET}"
+    echo -e "${GREEN}*************************************${RESET}"
+    
     read -p "Enter your choice: " choice
 
     case $choice in

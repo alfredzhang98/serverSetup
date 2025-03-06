@@ -1,39 +1,10 @@
 #!/bin/bash
 
-# 设置颜色变量
 GREEN="\033[32m"
 RED="\033[31m"
 YELLOW="\033[33m"
 RESET="\033[0m"
 
-# 错误处理，退出时输出提示信息
-trap 'echo -e "${YELLOW}Exiting script safely.${RESET}"; exit 1' ERR
-
-# 检查当前用户是否为 root
-if [[ $EUID -ne 0 ]]; then
-    echo -e "${RED}[ERROR] This script requires root privileges!${RESET}"
-    echo -e "${YELLOW}Try running: sudo $0${RESET}"
-    read -rp "Do you want to restart with sudo? (y/N): " choice
-    case $choice in
-        [Yy]* ) exec sudo bash "$0";;
-        * ) echo "Exiting script. Please run as root."; exit 1;;
-    esac
-fi
-
-# 加载 function_sshd.sh 文件
-FUNCTION_SSHD="./function/function_sshd.sh"
-if [[ ! -f "$FUNCTION_SSHD" ]]; then
-    echo -e "${RED}Error: function_sshd.sh not found!${RESET}"
-    read -rp "Do you want to continue without it? (y/N): " choice
-    case $choice in
-        [Yy]* ) echo -e "${YELLOW}Continuing without function_sshd.sh...${RESET}" ;;
-        * ) echo "Exiting script."; exit 1 ;;
-    esac
-else
-    source "$FUNCTION_SSHD"
-fi
-
-# 主菜单函数
 main_menu() {
   while true; do
     echo -e "${GREEN}******** SSH Configuration Menu ********${RESET}"
@@ -105,5 +76,30 @@ main_menu() {
     read -rp "Press Enter to continue..."
   done
 }
+
+# trap 'echo -e "${YELLOW}Exiting script safely.${RESET}"; exit 1' ERR
+
+if [[ $EUID -ne 0 ]]; then
+    echo -e "${RED}[ERROR] This script requires root privileges!${RESET}"
+    echo -e "${YELLOW}Try running: sudo $0${RESET}"
+    read -rp "Do you want to restart with sudo? (y/N): " choice
+    case $choice in
+        [Yy]* ) exec sudo bash "$0";;
+        * ) echo "Exiting script. Please run as root."; exit 1;;
+    esac
+fi
+
+
+FUNCTION_SSHD="./function/function_sshd.sh"
+if [[ ! -f "$FUNCTION_SSHD" ]]; then
+    echo -e "${RED}Error: function_sshd.sh not found!${RESET}"
+    read -rp "Do you want to continue without it? (y/N): " choice
+    case $choice in
+        [Yy]* ) echo -e "${YELLOW}Continuing without function_sshd.sh...${RESET}" ;;
+        * ) echo "Exiting script."; exit 1 ;;
+    esac
+else
+    source "$FUNCTION_SSHD"
+fi
 
 main_menu

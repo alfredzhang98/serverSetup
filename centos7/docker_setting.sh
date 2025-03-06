@@ -1,5 +1,11 @@
 #!/bin/bash
 
+GREEN="\033[32m"
+RED="\033[31m"
+YELLOW="\033[33m"
+RESET="\033[0m"
+
+
 function validate_input() {
     if [[ -z "$1" ]]; then
         echo "Input cannot be empty"
@@ -295,32 +301,32 @@ function reset_docker_configuration() {
 
 main_menu() {
     while true; do
-        echo -e "\033[32m ********** \033[0m"
-        echo -e "\033[32m Please select an operation to perform: \033[0m"
-        echo -e "\033[32m 1. View dockers container ID and details \033[0m"
-        echo -e "\033[32m 2. Run a container \033[0m"
-        echo -e "\033[32m 3. Run a container freely \033[0m"
-        echo -e "\033[32m 4. Enter a running container \033[0m"
-        echo -e "\033[32m 5. Start a container \033[0m"
-        echo -e "\033[32m 6. Stop a container \033[0m"
-        echo -e "\033[32m 7. Remove a container \033[0m"
-        echo -e "\033[32m 8. Setting a running container \033[0m"
-        echo -e "\033[32m ********** \033[0m"
-        echo -e "\033[32m 10. View dockers image \033[0m"
-        echo -e "\033[32m 11. Pull dockers image \033[0m"
-        echo -e "\033[32m 12. Import image from local file \033[0m"
-        echo -e "\033[32m 13. Export image to local file \033[0m"
-        echo -e "\033[32m 14. Remove an image \033[0m"
-        echo -e "\033[32m ********** \033[0m"
-        echo -e "\033[32m 20. Status docker \033[0m"
-        echo -e "\033[32m 21. Start docker \033[0m"
-        echo -e "\033[32m 22. StaStoptus docker \033[0m"
-        echo -e "\033[32m 23. Restart docker \033[0m"
-        echo -e "\033[32m 24. Set Docker firewall as firewalld\033[0m"
-        echo -e "\033[32m 25. Set Docker firewall as default\033[0m"
-        echo -e "\033[32m ********** \033[0m"
-        echo -e "\033[32m 0. Exit \033[0m"
-        echo -e "\033[32m ********** \033[0m"
+        echo -e "${GREEN}********** Docker Management Menu **********${RESET}"
+        echo -e "${GREEN} Please select an operation to perform: ${RESET}"
+        echo -e "${GREEN} 1.  View Docker Container ID and Details${RESET}"
+        echo -e "${GREEN} 2.  Run a Container${RESET}"
+        echo -e "${GREEN} 3.  Run a Container Freely${RESET}"
+        echo -e "${GREEN} 4.  Enter a Running Container${RESET}"
+        echo -e "${GREEN} 5.  Start a Container${RESET}"
+        echo -e "${GREEN} 6.  Stop a Container${RESET}"
+        echo -e "${GREEN} 7.  Remove a Container${RESET}"
+        echo -e "${GREEN} 8.  Setting a Running Container${RESET}"
+        echo -e "${GREEN}********************************************${RESET}"
+        echo -e "${GREEN}10.  View Docker Images${RESET}"
+        echo -e "${GREEN}11.  Pull Docker Image${RESET}"
+        echo -e "${GREEN}12.  Import Image from Local File${RESET}"
+        echo -e "${GREEN}13.  Export Image to Local File${RESET}"
+        echo -e "${GREEN}14.  Remove an Image${RESET}"
+        echo -e "${GREEN}********************************************${RESET}"
+        echo -e "${GREEN}20.  View Docker Status${RESET}"
+        echo -e "${GREEN}21.  Start Docker${RESET}"
+        echo -e "${GREEN}22.  Stop Docker${RESET}"
+        echo -e "${GREEN}23.  Restart Docker${RESET}"
+        echo -e "${GREEN}24.  Set Docker Firewall as Firewalld${RESET}"
+        echo -e "${GREEN}25.  Set Docker Firewall as Default${RESET}"
+        echo -e "${GREEN}********************************************${RESET}"
+        echo -e "${GREEN} 0.  Exit${RESET}"
+        echo -e "${GREEN}********************************************${RESET}"
 
         read -p "Enter the number for the operation: " choice
         case $choice in

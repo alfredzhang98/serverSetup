@@ -1,20 +1,26 @@
 #!/bin/bash
 
+GREEN="\033[32m"
+RED="\033[31m"
+YELLOW="\033[33m"
+RESET="\033[0m"
+
 main_menu() {
-    echo -e "\033[32m Makesure we have su permission \033[0m"
     while true; do
-        echo -e "\033[32m ******** \033[0m"
-        echo -e "\033[32m Please select an operation to perform: \033[0m"
-        echo -e "\033[32m 1. set sudo passwd\033[0m"
-        echo -e "\033[32m 2. update apt (facing kdump-tools configs and restart new packages configs)\033[0m"
-        echo -e "\033[32m 3. initial apt packages install(once is ok)\033[0m"
-        echo -e "\033[32m 4. install Baota panel\033[0m"
-        echo -e "\033[32m 5. install Baota safety monitoring\033[0m"
-        echo -e "\033[32m 6. install Baota WAF\033[0m"
-        echo -e "\033[32m 7. install Baota log analysis\033[0m"
-        echo -e "\033[32m 8. install Baota security system\033[0m"
-        echo -e "\033[32m 0. Exit \033[0m"
-        echo -e "\033[32m ******** \033[0m"
+        echo -e "${GREEN}******** APT-Based System Maintenance Menu ********${RESET}"
+        echo -e "${GREEN} Please select an operation to perform: ${RESET}"
+        echo -e "${GREEN} 1.  Set Sudo Password${RESET}"
+        echo -e "${GREEN} 2.  Update APT (Handling kdump-tools Configs and Restart New Packages Configs)${RESET}"
+        echo -e "${GREEN} 3.  Initial APT Packages Install (Once is OK)${RESET}"
+        echo -e "${GREEN}******************************************${RESET}"
+        echo -e "${GREEN} 4.  Install Baota Panel${RESET}"
+        echo -e "${GREEN} 5.  Install Baota Safety Monitoring${RESET}"
+        echo -e "${GREEN} 6.  Install Baota WAF${RESET}"
+        echo -e "${GREEN} 7.  Install Baota Log Analysis${RESET}"
+        echo -e "${GREEN} 8.  Install Baota Security System${RESET}"
+        echo -e "${GREEN}******************************************${RESET}"
+        echo -e "${GREEN} 0.  Exit${RESET}"
+        echo -e "${GREEN}******************************************${RESET}"
 
         read -p "Enter the corresponding number for the operation: " choice
 
@@ -84,12 +90,38 @@ main_menu() {
     done
 }
 
-if [[ $EUID -eq 0 ]]; then
-    echo "The current user is root"
-else
-    echo "The current user is not root"
-    exit 1
+if [[ $EUID -ne 0 ]]; then
+    echo -e "${RED}[ERROR] This script requires root privileges!${RESET}"
+    echo -e "${YELLOW}Try running: sudo $0${RESET}"
+    read -rp "Do you want to restart with sudo? (y/N): " choice
+    case $choice in
+        [Yy]* ) exec sudo bash "$0";;
+        * ) echo "Exiting script. Please run as root."; exec bash; exit 1;;
+    esac
 fi
-source ./function/function_ssh.sh
-source ./function/function_firewall.sh
+
+FUNCTION_SSH="./function/function_ssh.sh"
+if [[ ! -f "$FUNCTION_SSH" ]]; then
+    echo -e "${RED}Error: function_ssh.sh not found!${RESET}"
+    read -rp "Do you want to continue without it? (y/N): " choice
+    case $choice in
+        [Yy]* ) echo -e "${YELLOW}Continuing without function_ssh.sh...${RESET}" ;;
+        * ) echo "Exiting script."; exec bash; exit 1 ;;
+    esac
+else
+    source "$FUNCTION_SSH"
+fi
+
+FUNCTION_FIREWALL="./function/function_firewall.sh"
+if [[ ! -f "$FUNCTION_FIREWALL" ]]; then
+    echo -e "${RED}Error: function_firewall.sh not found!${RESET}"
+    read -rp "Do you want to continue without it? (y/N): " choice
+    case $choice in
+        [Yy]* ) echo -e "${YELLOW}Continuing without function_firewall.sh...${RESET}" ;;
+        * ) echo "Exiting script."; exec bash; exit 1 ;;
+    esac
+else
+    source "$FUNCTION_FIREWALL"
+fi
+
 main_menu

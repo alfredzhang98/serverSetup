@@ -1,4 +1,9 @@
+#!/bin/bash
 
+GREEN="\033[32m"
+RED="\033[31m"
+YELLOW="\033[33m"
+RESET="\033[0m"
 
 function dpkg_error() {
     echo "This is fixing Sub-process /usr/bin/dpkg returned an error code problem"
@@ -13,11 +18,13 @@ function dpkg_error() {
 
 # Main menu function
 main_menu() {
-  echo -e "\033[32m Makesure we have su permission \033[0m"
   while true; do
-    echo -e "\033[32m ******** \033[0m"
-    echo -e "\033[32m1. Fix E: Sub-process /usr/bin/dpkg returned an error code (1)\033[0m"
-    echo -e "\033[32m ******** \033[0m"
+    echo -e "${GREEN}******** System Fix Menu ************${RESET}"
+    echo -e "${GREEN} 1.  Fix 'E: Sub-process /usr/bin/dpkg returned an error code (1)'${RESET}"
+    echo -e "${GREEN}*************************************${RESET}"
+    echo -e "${GREEN} 0.  Exit${RESET}"
+    echo -e "${GREEN}*************************************${RESET}"
+
     case $selection in
     1) dpkg_error ;;
     0) break ;;
@@ -27,10 +34,14 @@ main_menu() {
   done
 }
 
-if [[ $EUID -eq 0 ]]; then
-    echo "The current user is root"
-else
-    echo "The current user is not root"
-    exit 1
+if [[ $EUID -ne 0 ]]; then
+    echo -e "${RED}[ERROR] This script requires root privileges!${RESET}"
+    echo -e "${YELLOW}Try running: sudo $0${RESET}"
+    read -rp "Do you want to restart with sudo? (y/N): " choice
+    case $choice in
+        [Yy]* ) exec sudo bash "$0";;
+        * ) echo "Exiting script. Please run as root."; exec bash; exit 1;;
+    esac
 fi
+
 main_menu

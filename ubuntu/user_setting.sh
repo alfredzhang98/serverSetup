@@ -1,5 +1,10 @@
 #!/bin/bash
 
+GREEN="\033[32m"
+RED="\033[31m"
+YELLOW="\033[33m"
+RESET="\033[0m"
+
 # Function to view current groups
 function view_group() {
   echo "Current groups:"
@@ -206,10 +211,14 @@ function unlock_user() {
 # Function for group setting menu
 function group_setting_menu() {
   while :; do
-    echo "1. View group"
-    echo "2. Add group"
-    echo "3. Delete group"
-    echo "0. Back to main menu"
+    echo -e "${GREEN}******** Group Management Menu ********${RESET}"
+    echo -e "${GREEN} 1.  View Group${RESET}"
+    echo -e "${GREEN} 2.  Add Group${RESET}"
+    echo -e "${GREEN} 3.  Delete Group${RESET}"
+    echo -e "${GREEN}***************************************${RESET}"
+    echo -e "${GREEN} 0.  Back to Main Menu${RESET}"
+    echo -e "${GREEN}***************************************${RESET}"
+
     read -p "Enter selection: " selection
 
     case $selection in
@@ -226,15 +235,19 @@ function group_setting_menu() {
 # Function for user setting menu
 function user_setting_menu() {
   while :; do
-    echo -e "\033[32m1. View user\033[0m"
-    echo -e "\033[32m2. Add user\033[0m"
-    echo -e "\033[32m3. Delete user\033[0m"
-    echo -e "\033[32m4. Modify user password\033[0m"
-    echo -e "\033[32m5. Modify user group\033[0m"
-    echo -e "\033[32m6. Modify user permissions\033[0m"
-    echo -e "\033[32m7. Lock user account\033[0m"
-    echo -e "\033[32m8. Unlock user account\033[0m"
-    echo -e "\033[32m0. Back to main menu\033[0m"
+    echo -e "${GREEN}******** User Management Menu ********${RESET}"
+    echo -e "${GREEN} 1.  View User${RESET}"
+    echo -e "${GREEN} 2.  Add User${RESET}"
+    echo -e "${GREEN} 3.  Delete User${RESET}"
+    echo -e "${GREEN} 4.  Modify User Password${RESET}"
+    echo -e "${GREEN} 5.  Modify User Group${RESET}"
+    echo -e "${GREEN} 6.  Modify User Permissions${RESET}"
+    echo -e "${GREEN} 7.  Lock User Account${RESET}"
+    echo -e "${GREEN} 8.  Unlock User Account${RESET}"
+    echo -e "${GREEN}*************************************${RESET}"
+    echo -e "${GREEN} 0.  Back to Main Menu${RESET}"
+    echo -e "${GREEN}*************************************${RESET}"
+
     read -p "Enter selection: " selection
 
     case $selection in
@@ -259,11 +272,14 @@ echo "Make sure the group exists before setting a new user"
 echo "****************************************************************"
 
 main_menu() {
-  echo -e "\033[32m Makesure we have su permission \033[0m"
   while true; do
-    echo -e "\033[32m1. Group setting\033[0m"
-    echo -e "\033[32m2. User setting\033[0m"
-    echo -e "\033[32m0. Quit\033[0m"
+    echo -e "${GREEN}******** User & Group Management Menu ********${RESET}"
+    echo -e "${GREEN} 1.  Group Setting${RESET}"
+    echo -e "${GREEN} 2.  User Setting${RESET}"
+    echo -e "${GREEN}*********************************************${RESET}"
+    echo -e "${GREEN} 0.  Exit${RESET}"
+    echo -e "${GREEN}*********************************************${RESET}"
+
     read -p "Enter selection: " selection
 
     case $selection in
@@ -276,11 +292,27 @@ main_menu() {
   done
 }
 
-if [[ $EUID -eq 0 ]]; then
-    echo "The current user is root"
-else
-    echo "The current user is not root"
-    exit 1
+if [[ $EUID -ne 0 ]]; then
+    echo -e "${RED}[ERROR] This script requires root privileges!${RESET}"
+    echo -e "${YELLOW}Try running: sudo $0${RESET}"
+    read -rp "Do you want to restart with sudo? (y/N): " choice
+    case $choice in
+        [Yy]* ) exec sudo bash "$0";;
+        * ) echo "Exiting script. Please run as root."; exec bash; exit 1;;
+    esac
 fi
-source ./function/function_ssh.sh
+
+
+FUNCTION_SSH="./function/function_ssh.sh"
+if [[ ! -f "$FUNCTION_SSH" ]]; then
+    echo -e "${RED}Error: function_ssh.sh not found!${RESET}"
+    read -rp "Do you want to continue without it? (y/N): " choice
+    case $choice in
+        [Yy]* ) echo -e "${YELLOW}Continuing without function_ssh.sh...${RESET}" ;;
+        * ) echo "Exiting script."; exec bash; exit 1 ;;
+    esac
+else
+    source "$FUNCTION_SSH"
+fi
+
 main_menu

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+GREEN="\033[32m"
+RED="\033[31m"
+YELLOW="\033[33m"
+RESET="\033[0m"
+
 # APT 镜像源切换（适配 Ubuntu 系统）
 function switch_apt_mirror() {
     local sources_list="/etc/apt/sources.list"
@@ -71,9 +76,12 @@ function switch_pip_mirror() {
 
 # 主菜单
 function main_menu() {
-    echo -e "\033[32mEnsure you have root privileges\033[0m"
-    echo "1. Switch to Domestic Mirrors"
-    echo "2. Switch to Default Mirrors"
+
+    echo -e "${GREEN}******** Mirror Switch Menu *********${RESET}"
+    echo -e "${GREEN} 1.  Switch to Domestic Mirrors${RESET}"
+    echo -e "${GREEN} 2.  Switch to Default Mirrors${RESET}"
+    echo -e "${GREEN}*************************************${RESET}"
+
     read -rp "Enter your choice: " choice
 
     case "$choice" in
@@ -93,10 +101,14 @@ function main_menu() {
     esac
 }
 
-# 检查是否为 root 用户
 if [[ $EUID -ne 0 ]]; then
-    echo "The current user is not root. Please run this script as root."
-    exit 1
+    echo -e "${RED}[ERROR] This script requires root privileges!${RESET}"
+    echo -e "${YELLOW}Try running: sudo $0${RESET}"
+    read -rp "Do you want to restart with sudo? (y/N): " choice
+    case $choice in
+        [Yy]* ) exec sudo bash "$0";;
+        * ) echo "Exiting script. Please run as root."; exec bash; exit 1;;
+    esac
 fi
 
 main_menu

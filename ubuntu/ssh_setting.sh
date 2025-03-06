@@ -1,39 +1,10 @@
 #!/bin/bash
 
-# 设置颜色变量
 GREEN="\033[32m"
 RED="\033[31m"
 YELLOW="\033[33m"
 RESET="\033[0m"
 
-# 错误处理，退出时输出提示信息
-trap 'echo -e "${YELLOW}Exiting script safely.${RESET}"; exit 1' ERR
-
-# 检查当前用户是否为 root
-if [[ $EUID -ne 0 ]]; then
-    echo -e "${RED}[ERROR] This script requires root privileges!${RESET}"
-    echo -e "${YELLOW}Try running: sudo $0${RESET}"
-    read -rp "Do you want to restart with sudo? (y/N): " choice
-    case $choice in
-        [Yy]* ) exec sudo bash "$0";;
-        * ) echo "Exiting script. Please run as root."; exit 1;;
-    esac
-fi
-
-# 加载 function_ssh.sh 文件
-FUNCTION_SSH="./function/function_ssh.sh"
-if [[ ! -f "$FUNCTION_SSH" ]]; then
-    echo -e "${RED}Error: function_ssh.sh not found!${RESET}"
-    read -rp "Do you want to continue without it? (y/N): " choice
-    case $choice in
-        [Yy]* ) echo -e "${YELLOW}Continuing without function_ssh.sh...${RESET}" ;;
-        * ) echo "Exiting script."; exit 1 ;;
-    esac
-else
-    source "$FUNCTION_SSH"
-fi
-
-# 主菜单函数
 main_menu() {
   while true; do
     echo -e "${GREEN}******** SSH Configuration Menu ********${RESET}"
@@ -45,17 +16,21 @@ main_menu() {
     echo -e "${GREEN} 6.  Toggle Password Authentication${RESET}"
     echo -e "${GREEN} 7.  Backup SSH Configuration${RESET}"
     echo -e "${GREEN} 8.  Restore SSH Configuration${RESET}"
+    echo -e "${GREEN}***************************************${RESET}"
     echo -e "${GREEN}10.  Reinstall SSH${RESET}"
     echo -e "${GREEN}11.  Check SSH Service Status${RESET}"
     echo -e "${GREEN}12.  Enable and Start SSH Service${RESET}"
     echo -e "${GREEN}13.  Restart SSH Service${RESET}"
+    echo -e "${GREEN}***************************************${RESET}"
     echo -e "${GREEN}20.  Edit root authorized_keys${RESET}"
     echo -e "${GREEN}21.  Reset root authorized_keys${RESET}"
     echo -e "${GREEN}22.  Set User SSH Permission${RESET}"
     echo -e "${GREEN}23.  Edit User authorized_keys${RESET}"
     echo -e "${GREEN}24.  Update User authorized_keys${RESET}"
     echo -e "${GREEN}25.  Generate SSH Key Pairs${RESET}"
-    echo -e "${GREEN} 0.  Quit${RESET}"
+    echo -e "${GREEN}***************************************${RESET}"
+    echo -e "${GREEN} 0.  Exit${RESET}"
+    echo -e "${GREEN}***************************************${RESET}"
     
     read -rp "Enter selection: " selection
     
@@ -105,5 +80,29 @@ main_menu() {
     read -rp "Press Enter to continue..."
   done
 }
+
+# trap 'echo -e "${YELLOW}Exiting script safely.${RESET}"; exit 1' ERR
+
+if [[ $EUID -ne 0 ]]; then
+    echo -e "${RED}[ERROR] This script requires root privileges!${RESET}"
+    echo -e "${YELLOW}Try running: sudo $0${RESET}"
+    read -rp "Do you want to restart with sudo? (y/N): " choice
+    case $choice in
+        [Yy]* ) exec sudo bash "$0";;
+        * ) echo "Exiting script. Please run as root."; exec bash; exit 1;;
+    esac
+fi
+
+FUNCTION_SSH="./function/function_ssh.sh"
+if [[ ! -f "$FUNCTION_SSH" ]]; then
+    echo -e "${RED}Error: function_ssh.sh not found!${RESET}"
+    read -rp "Do you want to continue without it? (y/N): " choice
+    case $choice in
+        [Yy]* ) echo -e "${YELLOW}Continuing without function_ssh.sh...${RESET}" ;;
+        * ) echo "Exiting script."; exec bash; exit 1 ;;
+    esac
+else
+    source "$FUNCTION_SSH"
+fi
 
 main_menu
