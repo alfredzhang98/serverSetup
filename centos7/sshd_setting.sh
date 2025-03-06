@@ -36,7 +36,6 @@ fi
 # 主菜单函数
 main_menu() {
   while true; do
-    clear
     echo -e "${GREEN}******** SSH Configuration Menu ********${RESET}"
     echo -e "${GREEN} 1.  View SSH Configuration${RESET}"
     echo -e "${GREEN} 2.  Edit SSH Config with Vim${RESET}"

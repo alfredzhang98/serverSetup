@@ -36,7 +36,6 @@ fi
 # 主菜单函数
 main_menu() {
   while true; do
-    clear
     echo -e "${GREEN}******** SSH Configuration Menu ********${RESET}"
     echo -e "${GREEN} 1.  View SSH Configuration${RESET}"
     echo -e "${GREEN} 2.  Edit SSH Config with Vim${RESET}"
@@ -70,9 +69,9 @@ main_menu() {
       7) backup_ssh_config ;;
       8) restore_ssh_config ;;
       10) reinstall_ssh ;;
-      11) sudo systemctl status ssh.servcie || echo -e "${RED}Failed to check SSH service status.${RESET}" ;;
+      11) sudo systemctl status ssh || echo -e "${RED}Failed to check SSH service status.${RESET}" ;;
       12) _enable_and_start_ssh ;;
-      13) sudo systemctl restart ssh.servcie ;;
+      13) sudo systemctl restart ssh ;;
       20) edit_root_authorized_keys ;;
       21) reset_root_authorized_keys ;;
       22) 
