@@ -47,11 +47,23 @@ function _add_host_keys(){
 # Function to display a specific configuration
 function _display_config() {
   local config_key=$1
-  local config_value=$(grep "^$config_key" "$SSH_CONFIG_FILE" | tail -1 | awk '{print $2}')
-  if [ -z "$config_value" ]; then
-      config_value="Not Set/Commented Out"
+  if [ "$config_key" == "AllowUsers" ]; then
+    local config_values=$(grep "^$config_key" "$SSH_CONFIG_FILE" | awk '{$1=""; print $0}' | sed 's/^ *//')
+    if [ -z "$config_values" ]; then
+      echo "$config_key: Not Set/Commented Out"
+    else
+      echo "$config_key:"
+      echo "$config_values" | while read -r line; do
+        echo "  $line"
+      done
+    fi
+  else
+    local config_value=$(grep "^$config_key" "$SSH_CONFIG_FILE" | tail -1 | awk '{print $2}')
+    if [ -z "$config_value" ]; then
+        config_value="Not Set/Commented Out"
+    fi
+    echo "$config_key: $config_value"
   fi
-  echo "$config_key: $config_value"
 }
 
 function init_ssh() {
@@ -120,18 +132,20 @@ function modify_ssh_config() {
   local config_name="$1"
   local default_choice="$2"
   local choice="$3"
-  if grep -q "^#$config_name" "$SSH_CONFIG_FILE"; then
-      sudo sed -i "s/^#$config_name.*/#$config_name $default_choice/" "$SSH_CONFIG_FILE"
-      if ! grep -q "^$config_name" "$SSH_CONFIG_FILE"; then
-          sudo sed -i "/^#$config_name/a $config_name $choice" "$SSH_CONFIG_FILE"
-      fi
+  
+  # 如果存在未注释的配置行，则替换所有行
+  if grep -qE "^\s*$config_name\s+" "$SSH_CONFIG_FILE"; then
+      sudo sed -i "s/^\s*$config_name\s\+.*/$config_name $choice/" "$SSH_CONFIG_FILE"
+  elif grep -qE "^\s*#\s*$config_name\s+" "$SSH_CONFIG_FILE"; then
+      # 取消注释第一处出现的配置，并修改
+      sudo sed -i "0,/#\s*$config_name/ s/#\s*\($config_name\s\+\).*/$config_name $choice/" "$SSH_CONFIG_FILE"
   else
-      echo "#$config_name $default_choice" | sudo tee -a "$SSH_CONFIG_FILE"
-      echo "$config_name $choice" | sudo tee -a "$SSH_CONFIG_FILE"
+      # 如果都没有，则在文件末尾追加配置
+      echo "$config_name $choice" | sudo tee -a "$SSH_CONFIG_FILE" > /dev/null
   fi
-  if grep -q "^$config_name" "$SSH_CONFIG_FILE"; then
-      sudo sed -i "s/^$config_name.*/$config_name $choice/" "$SSH_CONFIG_FILE"
-  fi
+
+  # 可选：删除可能存在的重复行，确保只有一处有效配置
+  sudo awk '!x[$0]++' "$SSH_CONFIG_FILE" | sudo tee "$SSH_CONFIG_FILE" > /dev/null
 }
 
 # Function to toggle PermitRootLogin
@@ -251,15 +265,12 @@ function set_user_permission() {
       echo "User $username does not exist."
       return
   fi
-  if grep -q "^AllowUsers" "$SSH_CONFIG_FILE"; then
-      if grep -q "AllowUsers.*$username" "$SSH_CONFIG_FILE"; then
-          echo "User $username is already allowed in SSH config."
-      else
-          sudo sed -i "/^AllowUsers/s/$/ $username/" "$SSH_CONFIG_FILE"
-          echo "User $username added to AllowUsers in SSH config."
-      fi
+
+  # 检查文件中是否已经有一行是 “AllowUsers <username>”
+  if grep -qE "^AllowUsers[[:space:]]+$username([[:space:]]|\$)" "$SSH_CONFIG_FILE"; then
+      echo "User $username is already allowed in SSH config."
   else
-      echo -e "\nAllowUsers $username" | sudo tee -a "$SSH_CONFIG_FILE"
+      echo "AllowUsers $username" | sudo tee -a "$SSH_CONFIG_FILE" > /dev/null
       echo "AllowUsers with user $username added to SSH config."
   fi
   sudo systemctl restart ssh
