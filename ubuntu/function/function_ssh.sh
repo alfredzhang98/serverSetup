@@ -132,20 +132,18 @@ function modify_ssh_config() {
   local config_name="$1"
   local default_choice="$2"
   local choice="$3"
-  
-  # 如果存在未注释的配置行，则替换所有行
-  if grep -qE "^\s*$config_name\s+" "$SSH_CONFIG_FILE"; then
-      sudo sed -i "s/^\s*$config_name\s\+.*/$config_name $choice/" "$SSH_CONFIG_FILE"
-  elif grep -qE "^\s*#\s*$config_name\s+" "$SSH_CONFIG_FILE"; then
-      # 取消注释第一处出现的配置，并修改
-      sudo sed -i "0,/#\s*$config_name/ s/#\s*\($config_name\s\+\).*/$config_name $choice/" "$SSH_CONFIG_FILE"
-  else
-      # 如果都没有，则在文件末尾追加配置
-      echo "$config_name $choice" | sudo tee -a "$SSH_CONFIG_FILE" > /dev/null
-  fi
+  local config_line="$config_name $choice"
 
-  # 可选：删除可能存在的重复行，确保只有一处有效配置
-  sudo awk '!x[$0]++' "$SSH_CONFIG_FILE" | sudo tee "$SSH_CONFIG_FILE" > /dev/null
+  # 如果文件中存在未注释的配置行，则直接替换所有未注释的行
+  if grep -qE "^\s*$config_name\s+" "$SSH_CONFIG_FILE"; then
+      sudo sed -i "s/^\s*$config_name\s\+.*/${config_line}/" "$SSH_CONFIG_FILE"
+  # 如果没有未注释行，但存在注释的配置行，则只取消注释第一处并修改
+  elif grep -qE "^\s*#\s*$config_name\s+" "$SSH_CONFIG_FILE"; then
+      sudo sed -i "0,/#\s*$config_name\s\+/s//${config_line}/" "$SSH_CONFIG_FILE"
+  else
+      # 如果都没有，则在文件末尾追加一行
+      echo "${config_line}" | sudo tee -a "$SSH_CONFIG_FILE" > /dev/null
+  fi
 }
 
 # Function to toggle PermitRootLogin
