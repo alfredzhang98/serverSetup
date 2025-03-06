@@ -163,7 +163,7 @@ function enter_container() {
     validate_input $container_name
 
     docker exec -it "$container_name" /bin/bash
-    exit 0
+    exit 1
 }
 
 function start_container() {
@@ -361,7 +361,7 @@ main_menu() {
             ;;
         24)configure_docker_for_firewalld ;;
         25)reset_docker_configuration ;;
-        0) exit 0 ;;
+        0) exit 1 ;;
         *) echo "Invalid selection" ;;
         esac
         read -p "Press Enter to continue..."

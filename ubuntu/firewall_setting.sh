@@ -93,7 +93,7 @@ main_menu() {
         21) disable_zone_drifting ;;
         0)
             echo "Exiting the script"
-            exit 0
+            exit 1
             ;;
         *)
             echo "Invalid selection"

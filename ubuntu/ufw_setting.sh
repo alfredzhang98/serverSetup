@@ -112,7 +112,7 @@ main_menu() {
             7) manage_firewall restart ;;
             8) modify_rule ;;
             9) add_delete_application_rule ;;
-            0) echo "Exiting the script"; exit 0 ;;
+            0) echo "Exiting the script"; exit 1 ;;
             *) echo "Invalid selection" ;;
         esac
         read -p "Press Enter to continue..."

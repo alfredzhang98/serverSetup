@@ -74,7 +74,7 @@ main_menu() {
             ;;
         0)
             echo "Exiting the script"
-            exit 0
+            exit 1
             ;;
         *)
             echo "Invalid selection"
