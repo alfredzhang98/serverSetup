@@ -2,6 +2,8 @@
 
 # 加速Git
 # https://cloud.tencent.com/developer/article/1835785
+# Git store pass keys, no need to put every time. 
+# git config --global credential.helper store
 
 # 获取当前 Git 仓库的远程地址
 remote_url=$(git remote -v | awk '/origin.*\(push\)$/ {print $2}')
