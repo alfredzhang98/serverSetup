@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 加速Git
+# 加速Git 国内镜像
 # https://cloud.tencent.com/developer/article/1835785
 # Git store pass keys, no need to put every time. 
 # git config --global credential.helper store
